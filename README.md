@@ -183,7 +183,7 @@ If `dest` is undefined or empty an ArrayBuffer is returned.
 
 ### `.close`() -> `SPL`
 
-### .get
+### `.get`
 
 A result object with the following properties:
 
