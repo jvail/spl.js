@@ -12,8 +12,6 @@ The library for browsers bundles both the WebWorker script and the wasm file (~ 
 
 ## Code Examples
 
----
-
 ### Browser: Simple Query
 
 ```js
@@ -87,8 +85,6 @@ console.assert(
 
 ## Live Examples
 
----
-
 Creating a Topology from a GeoPackage Layer and Simplify Polygon Boundaries. Be patient - spl.js needs to be fetched and building the topology will take a few seconds as well:
 
 https://jvail.github.io/spl.js/examples/topology.html
@@ -99,8 +95,6 @@ Load proj.db, Transform and Display a GeoPackage Geometries in OpenLayers. Be pa
 https://jvail.github.io/spl.js/examples/openlayers.html
 
 ## API
-
----
 
 The API for node and browser (returns mostly _thenables_) is identical (almost - file handling is obviously different. See `mount` function).
 
@@ -202,8 +196,6 @@ A result object with the following properties:
 
 ## Extensions API (Browser only)
 
----
-
 Sometimes you want to run code inside the WebWorker. With this API you can supply additional functions to extend the `SPL` and `DB` APIs executed inside the WebWorker.
 
 ### Example Code
@@ -244,8 +236,6 @@ console.assert(await spl.spatialite_version() === '5.0.1');
 
 ## Building and Testing
 
----
-
 An activated, working emsdk environment is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite are fetched from the web. The `src/spatialite` git submodule (https://salsa.debian.org/debian-gis-team/spatialite.git) needs to be initialized before running the build script.
 
 ```bash
@@ -265,8 +255,6 @@ npm run test:em
 ```
 
 ## Performance
-
----
 
 I did not create any fancy benchmark scripts. This is just a rough figure obtained from running a few tests with rttopo:
 
