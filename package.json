@@ -1,0 +1,58 @@
+{
+  "name": "spl.js",
+  "version": "0.1.0-beta.0",
+  "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
+  "main": "dist/spl.js",
+  "browser": "dist/index.js",
+  "scripts": {
+    "test:node": "node test/node.js",
+    "test:electron": "node test/electron.js",
+    "test:chrome": "browserify --plugin esmify test/browser.js | tape-run --browser chrome --keep-open",
+    "test:firefox": "browserify --plugin esmify test/browser.js | tape-run --browser firefox --keep-open",
+    "test:em": "make tests",
+    "test:all": "npm run test:em && npm run test:node && npm run test:electron",
+    "build:node": "rollup -c rollup.config.node.js",
+    "build:node:debug": "rollup -c rollup.config.node.js --configDebug",
+    "build:web": "npm run build:worker && node scripts/stringify && rollup -c rollup.config.web.js",
+    "build:web:debug": "npm run build:worker -- --configDebug && node scripts/stringify && rollup -c rollup.config.web.js --configDebug",
+    "build:worker": "rollup -c rollup.config.worker.js",
+    "build:all": "make em && make spl && npm run build:node && npm run build:web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jvail/spl.js.git"
+  },
+  "keywords": [
+    "spatialite",
+    "sqlite",
+    "geos",
+    "proj",
+    "rttopo",
+    "topology"
+  ],
+  "author": "Jan Vaillant",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/jvail/spl.js/issues"
+  },
+  "homepage": "https://github.com/jvail/spl.js#readme",
+  "devDependencies": {
+    "@material/mwc-slider": "^0.22.1",
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "browserify": "^17.0.0",
+    "esmify": "^2.1.1",
+    "rollup": "^2.53.1",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "tape": "^5.2.2",
+    "tape-run": "^9.0.0",
+    "tslib": "^2.3.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "pako": "^2.0.3"
+  }
+}

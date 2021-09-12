@@ -1,0 +1,3 @@
+[submodule "src/spatialite"]
+	path = src/spatialite
+	url = https://salsa.debian.org/debian-gis-team/spatialite.git

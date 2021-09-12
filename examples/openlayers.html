@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>OpenLayers</title>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/css/ol.css">
+    <style>
+        body {
+            margin: 0px;
+        }
+        .map {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <script type="module">
+
+        import SPL from '../dist/index.js';
+
+        const map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM(),
+                })
+            ],
+            target: 'map',
+            view: new ol.View({
+                center: [0, 0],
+                zoom: 2
+            })
+        });
+
+        (async () => {
+            try {
+
+                const spl = await SPL();
+
+                const proj = await fetch('../dist/proj/proj.db')
+                    .then(response => response.arrayBuffer());
+
+                const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
+                    .then(response => response.arrayBuffer());
+
+                const db = await spl.mount('proj', {
+                    buffers: [{ name: 'proj.db', data: proj }]
+                }).db(london_boroughs)
+                    .exec('select enablegpkgmode()')
+                    .exec('select initspatialmetadata(1)');
+
+                const geoms = await db.exec('select transform(geom, 3857) from london_boroughs').get.flat;
+
+                const collection = {
+                    type: 'FeatureCollection',
+                    features: geoms.map(geometry => ({ type: 'Feature', geometry }))
+                };
+
+                const source = new ol.source.Vector({
+                    features: new ol.format.GeoJSON().readFeatures(collection),
+                });
+
+                map.addLayer(new ol.layer.Vector({ source }));
+                map.getView().fit(source.getExtent());
+
+            } catch (err) {
+                console.log(err);
+            }
+        })();
+
+    </script>
+  </body>
+</html>
