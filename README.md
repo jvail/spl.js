@@ -85,12 +85,12 @@ console.assert(
 
 ## Live Examples
 
-Creating a Topology from a GeoPackage Layer and Simplify Polygon Boundaries. Be patient - spl.js needs to be fetched and building the topology will take a few seconds as well:
+Create a topology from a GeoPackage layer and simplify polygon boundaries. Be patient - spl.js needs to be fetched and building the topology will take a few seconds as well:
 
 https://jvail.github.io/spl.js/examples/topology.html
 
 
-Load proj.db, Transform and Display a GeoPackage Geometries in OpenLayers. Be patient - spl.js, OpenLayers and proj.db (~ 6MB) needs to be fetched:
+Load proj.db, transform and display GeoPackage geometries in OpenLayers. Be patient - spl.js, OpenLayers and proj.db (~ 6MB) needs to be fetched:
 
 https://jvail.github.io/spl.js/examples/openlayers.html
 
