@@ -12,7 +12,7 @@ The library for browsers bundles both the WebWorker script and the wasm file (~ 
 
 ## Code Examples
 
-### Browser: Simple Query
+Browser: Simple Query
 
 ```js
 import SPL from 'spl.js';
@@ -27,7 +27,7 @@ db.exec('select ? as hello', ['spatialite']).get.objs
     .catch(err => console.log(err));
 ```
 
-### Browser: Import a GeoPackage
+Browser: Import a GeoPackage
 
 ```js
 import SPL from 'spl.js';
@@ -47,7 +47,7 @@ const srid = await db.exec('select srid(geom) from london.london_boroughs').get.
 console.assert(srid === 27700)
 ```
 
-### Node: Handle JSON & GeoJSON automatically (parse, stringify, geometry blob to GeoJSON)
+Node: Handle JSON & GeoJSON automatically (parse, stringify, geometry blob to GeoJSON)
 
 ```js
 const spl = require('spl.js');
@@ -67,7 +67,7 @@ console.assert(
 );
 ```
 
-### Node: Import a zipped Shapefile
+Node: Import a zipped Shapefile
 
 ```js
 const spl = require('spl.js');
@@ -139,7 +139,7 @@ Files and Blobs are read only (seems not to work with some SQLite dbs - I'd gues
 
 ### `.unmount`(`path`: string) -> `SPL`
 
-### .terminate()
+### `.terminate`()
 
 Terminates the WebWorker (only Browser).
 
