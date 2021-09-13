@@ -102,7 +102,7 @@ If you are looking for more examples there are many snippets in the `test/node.j
 
 ## SPL
 
-### `SPL`([`extensions`, `options`]) -> `SPL`
+### `SPL`([`extensions`: [], `options`: {}]) -> `SPL`
 
 extensions: Browser only - see "Extensions API" section below.
 
@@ -130,11 +130,13 @@ options object properties:
 - `files`: { `name`: string, `data`: File | FileList }[];
 - `blobs`: { `name`: string, `data`: Blob }[];
 
-Files and Blobs are read only (seems not to work with some SQLite dbs - I'd guess e.g. if WAL mode is enabled).
+Files and Blobs are read only and content does not need to be copied entirly into WebAssemly memory. But this seems not to work with some SQLite/GPKG files - I'd guess e.g. if WAL mode is enabled. If a buffer is provided then a file is created in emscripten's memory filesystem.
 
 **Node**
 
-### `.mount`(`path`: string, `mountpoint`: string) -> `SPL`
+### `.mount`(`path`: string, [`mountpoint`: string]) -> `SPL`
+
+If no mountpoint is provided the local `path` will be mouted as root e.g. `a_dir/some_dir/some_file` is available as `some_dir/some_file` if mounted as `spl.mount(path: 'a_dir')`.
 
 
 ### `.unmount`(`path`: string) -> `SPL`
@@ -189,10 +191,10 @@ A result object with the following properties:
 
 ### `.first` -> any
 ### `.flat` -> any[]
-### `.rows` -> any[]
+### `.rows` -> any[][]
 ### `.cols` -> string[]
 ### `.objs` -> {}[]
-### `.sync` -> synchronous self
+### `.sync` -> [cols, rows]
 
 ## Extensions API (Browser only)
 
