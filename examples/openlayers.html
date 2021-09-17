@@ -40,18 +40,23 @@
 
                 const spl = await SPL();
 
-                const proj = await fetch('../dist/proj/proj.db')
-                    .then(response => response.arrayBuffer());
-
                 const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
-                    .then(response => response.arrayBuffer());
+                    .then(response => response.blob());
 
-                const db = await spl.mount('proj', {
-                    buffers: [{ name: 'proj.db', data: proj }]
-                }).db(london_boroughs)
-                    .exec('select enablegpkgmode()')
-                    .exec('select initspatialmetadata(1)');
+                const db = await spl
+                    .mount('proj', [
+                        // Mounts proj.db required for transformation to the default path (proj/proj.db) as remote db.
+                        // Instead of downloading the entire db spl/sqlite will only fetch required db pages.
+                        { name: 'proj.db', data: new URL('../dist/proj/proj.db', window.location.href).toString() }
+                    ])
+                    .mount('data', [
+                        { name: 'london_boroughs.gpkg', data: london_boroughs }
+                    ]).db()
+                        .load('file:data/london_boroughs.gpkg?immutable=1') // Set to immutable when loading (i.e. copy the contents) to a mutable db
+                        .exec('select enablegpkgmode()')
+                        .exec('select initspatialmetadata(1)');
 
+                // geoms are already GeoJSON objects. No need for AsGeoJSON().
                 const geoms = await db.exec('select transform(geom, 3857) from london_boroughs').get.flat;
 
                 const collection = {

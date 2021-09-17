@@ -2,3 +2,4 @@ src/tmp
 build
 node_modules
 .vscode
+.*

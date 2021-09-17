@@ -12,6 +12,7 @@
             }
             .container > * {
                 width: 75%;
+                margin: 0 auto;
             }
 
             </style>
@@ -22,13 +23,15 @@
             Move slider to simplify boundaries. Simplified boundaries will we visualized as soon as the topology is ready.
         </pre>
         <div class="container">
-            <mwc-slider discrete withTickMarks max="2000" min="0" value="0" step="100"></mwc-slider>
+            <mwc-slider id="slider" discrete withTickMarks max="2000" min="0" value="0" step="100"></mwc-slider>
             <div id='svg-container' style="text-align:center; width: 100%;"></div>
         </div>
     </body>
     <script type="module">
 
         import SPL from '../dist/index.js';
+
+        document.querySelector('#slider').valueToValueIndicatorTransform = (v) => v + 'm';
 
         (async () => {
             try {
@@ -42,7 +45,7 @@
                             const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                             pathEl.setAttribute('d', row.path);
                             pathEl.setAttribute('fill', 'whitesmoke');
-                            pathEl.setAttribute('stroke', '#018786');
+                            pathEl.setAttribute('stroke', '#6200ee');
                             pathEl.setAttribute('stroke-width', 100);
                             svgEl.appendChild(pathEl);
                         });
@@ -68,14 +71,11 @@
 
                 const spl = await SPL();
 
-                const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
-                    .then(response => response.arrayBuffer());
-
-                const db = await spl.mount('data', {
-                    buffers: [{ name: 'london_boroughs', data: london_boroughs}]
-                }).db()
+                const db = await spl.mount('data', [
+                    { name: 'london_boroughs', data: new URL('../test/files/dbs/london.gpkg', window.location.href).toString() }
+                ]).db()
                     .exec('select initspatialmetadata(1)')
-                    .attach('data/london_boroughs', 'london');
+                    .attach('file:data/london_boroughs?immutable=1', 'london');
 
                 const srid = await db.exec('select srid(geom) from london.london_boroughs limit 1').get.first;
 

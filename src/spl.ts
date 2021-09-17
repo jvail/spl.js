@@ -4,7 +4,8 @@ import { version as spatial_version } from '../package.json';
 import {
     ISPLSync,
     IDBSync,
-    ISplOptions
+    ISplOptions,
+    IMountOption
 } from './interfaces';
 
 const SQLITE = Object.freeze({
@@ -18,7 +19,7 @@ const SQLITE = Object.freeze({
     NULL: 5
 });
 
-// TODO add mounting option and automatic json<->geom conversion
+
 const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync {
 
     // @ts-ignore
@@ -32,7 +33,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
             precision: 6,
             options: 0
         },
-        ...options
+        ...(options || {})
     };
     const {
         getValue,
@@ -430,17 +431,19 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
             tempname = memname();
             FS.createDataFile('/tmp', tempname, new Uint8Array(sqlite3), true, true);
         } else if (typeof(sqlite3) === 'string' || !sqlite3) {
-            if (ENVIRONMENT_IS_NODE) {
-                filename = sqlite3;
-            } else {
-                filename = ':memory:';
-            }
+            filename = sqlite3;
+            // if (ENVIRONMENT_IS_NODE) {
+            //     filename = sqlite3;
+            // } else {
+            //     filename = ':memory:';
+            // }
         } else {
             throw new Error('Expected nothing, string or ArrayBuffer');
         }
 
         tmpPtr = stackAlloc(4);
-        const ret = sqlite3_open(filename || ':memory:', tmpPtr/*, 0x00000040*/);
+        const ret = sqlite3_open(filename || ':memory:', tmpPtr);
+        // const ret = sqlite3_open_v2(filename || ':memory:', tmpPtr, 0x00000002 + 0x00000004 + 0x00000040, 0);
         dbHandle = getValue(tmpPtr, 'i32');
 
         if (ret === SQLITE.OK) {
@@ -474,29 +477,36 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
     };
 
     // options
-    // {
-    //  blobs: [{ name: 'blob.txt', data: Blob }],
-    //  files: files, // Array of File objects or FileList
-    //  buffers: [{ name: 'blob.txt', data: ArrayBuffer }],
-    // }
+    // [
+    //  { name: 'name', data: Blob | File | FileList | string  }],
+    // ]
     //
-    this.mount = (path: string, mountpoint: string ='root', options: any ={}): ISPLSync => {
+    this.mount = (path: string, mountpoint: string ='root', options: IMountOption[] =[]): ISPLSync => {
         const toroot = mountpoint == 'root' || mountpoint == '.' || mountpoint === '/'  || !mountpoint;
         try {
             FS.mkdir(toroot ? 'root' : mountpoint);
             if (ENVIRONMENT_IS_NODE) {
                 FS.mount(NODEFS, { root: path }, toroot ? 'root' : mountpoint);
             } else {
-                if (options.buffers) {
-                    options.buffers.forEach(buffer => {
-                        FS.createDataFile(path, buffer.name, new Uint8Array(buffer.data), true, true);
-                    });
-                    if (toroot) {
-                        FS.chdir('root');
+                const fs_options = options.reduce((options, option) => {
+                    const { name, data } = option;
+                    if (data instanceof Blob) {
+                        options.blobs.push({ name, data });
+                    } else if (data instanceof File) {
+                        options.files.push(data);
+                    } else if (data instanceof FileList) {
+                        for (let i = 0; i < data.length; i++) {
+                            options.files.push(data.item(i));
+                        }
+                    } else if (data instanceof ArrayBuffer) {
+                        options.blobs.push({ name, data: new Blob([data]) });
+                    } else if (typeof data === 'string') {
+                        options.blobs.push({ name, data: new URL(data).toString() });
                     }
-                }
-                if (options.files || options.blobs) {
-                    FS.mount(WORKERFS, options, toroot ? 'root' : mountpoint);
+                    return options;
+                }, { files: [], blobs: [] });
+                if (fs_options.files.length || fs_options.blobs.length) {
+                    FS.mount(WORKERFS, fs_options, toroot ? 'root' : mountpoint);
                 }
             }
             if (toroot) {

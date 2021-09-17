@@ -2,7 +2,7 @@ import * as pako from 'pako';
 import workerStr from './build/js/worker.str.js';
 import wasmStr from './build/js/wasm.str.js';
 import result from './result.js';
-import { IDB, IMountOptions, ISPL, ISplOptions } from './interfaces.js';
+import { IDB, IMountOption, ISPL, ISplOptions } from './interfaces.js';
 const workerURL= URL.createObjectURL(new Blob([pako.inflate(Uint8Array.from(atob(workerStr), c => c.charCodeAt(0)), { to: 'string' })], { type: 'text/javascript' }));
 const wasmBinary = pako.inflate(Uint8Array.from(atob(wasmStr), c => c.charCodeAt(0))).buffer;
 
@@ -266,7 +266,7 @@ const spl = function (wkr: Worker, exs=[]): ISPL {
         return thenSpl();
     };
 
-    this.mount = (path: string, options: IMountOptions) => {
+    this.mount = (path: string, options: IMountOption[]) => {
         stackSpl.push({
             fn: 'mount',
             args: [path, path, options]

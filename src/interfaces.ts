@@ -25,7 +25,7 @@ interface IDBSync {
 
 interface ISPL extends PromiseLike<ISPL>  {
     db(path: undefined | string | ArrayBuffer): IDB;
-    mount(path: string, options: IMountOptions): ISPL;
+    mount(path: string, options: IMountOption[]): ISPL;
     unmount(path: string): ISPL;
     version(): any;
     terminate(): void;
@@ -60,10 +60,9 @@ interface IResult {
     free: undefined
 }
 
-interface IMountOptions {
-    buffers?: { name: string, data: ArrayBuffer }[];
-    files?: { name: string, data: File | FileList }[];
-    blobs?: { name: string, data: Blob }[];
+interface IMountOption {
+    name: string;
+    data: ArrayBuffer | Blob | File | FileList | string;
 }
 
 interface ISplOptions {
@@ -81,5 +80,5 @@ export {
     IDB,
     IDBSync,
     IResult,
-    IMountOptions
+    IMountOption
 }

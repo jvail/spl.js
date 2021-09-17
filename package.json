@@ -1,14 +1,14 @@
 {
   "name": "spl.js",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.1",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "main": "dist/spl.js",
   "browser": "dist/index.js",
   "scripts": {
     "test:node": "node test/node.js",
     "test:electron": "node test/electron.js",
-    "test:chrome": "browserify --plugin esmify test/browser.js | tape-run --browser chrome --keep-open",
-    "test:firefox": "browserify --plugin esmify test/browser.js | tape-run --browser firefox --keep-open",
+    "test:chrome": "browserify --plugin esmify test/browser.js | tape-run --static test --browser chrome --keep-open",
+    "test:firefox": "browserify --plugin esmify test/browser.js | tape-run --static test --browser firefox --keep-open",
     "test:em": "make tests",
     "test:all": "npm run test:em && npm run test:node && npm run test:electron",
     "build:node": "rollup -c rollup.config.node.js",
@@ -27,8 +27,7 @@
     "sqlite",
     "geos",
     "proj",
-    "rttopo",
-    "topology"
+    "rttopo"
   ],
   "author": "Jan Vaillant",
   "license": "GPLv3",
@@ -37,7 +36,6 @@
   },
   "homepage": "https://github.com/jvail/spl.js#readme",
   "devDependencies": {
-    "@material/mwc-slider": "^0.22.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",

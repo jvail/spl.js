@@ -5,7 +5,7 @@ SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and br
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.0
+npm install spl.js@0.1.0-beta.1
 ```
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.
@@ -18,9 +18,7 @@ Browser: Simple Query
 import SPL from 'spl.js';
 const db = await SPL().then(spl => spl.db());
 
-console.assert(
-    (await db.exec('select spatialite_version()').get.first) === '5.0.1'
-);
+console.assert(await db.exec('select spatialite_version()').get.first === '5.0.1');
 
 db.exec('select ? as hello', ['spatialite']).get.objs
     .then(res => console.assert(res[0].hello === 'spatialite'))
@@ -36,13 +34,10 @@ const spl = await SPL();
 const london = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
     .then(response => response.arrayBuffer());
 
-const db = await spl.mount('data', {
-    buffers: [{ name: 'london', data: london}]
-}).db()
-    .exec('select enablegpkgamphibiousmode()')
-    .attach('data/london', 'london');
+const db = await spl.db(london)
+    .exec('select enablegpkgamphibiousmode()');
 
-const srid = await db.exec('select srid(geom) from london.london_boroughs').get.first;
+const srid = await db.exec('select srid(geom) from london_boroughs').get.first;
 
 console.assert(srid === 27700)
 ```
@@ -90,9 +85,11 @@ Create a topology from a GeoPackage layer and simplify polygon boundaries. Be pa
 https://jvail.github.io/spl.js/examples/topology.html
 
 
-Load proj.db, transform and display GeoPackage geometries in OpenLayers. Be patient - spl.js, OpenLayers and proj.db (~ 6MB) needs to be fetched:
+Load proj.db remotely, transform and display GeoPackage geometries in OpenLayers. Be patient - spl.js and OpenLayers needs to be fetched:
 
 https://jvail.github.io/spl.js/examples/openlayers.html
+
+Source: https://github.com/jvail/spl.js/tree/main/examples
 
 ## API
 
@@ -118,23 +115,24 @@ options:
         - 4 GeoJSON CRS [long version]
         - 5 BoundingBox + long CRS
 
-### `.db`(`path`: undefined | string | ArrayBuffer) -> `DB`
+### `.db`([`path`: string | ArrayBuffer]) -> `DB`
 
 **Browser**
 
 ### `.mount`(`path`: string, options) -> `SPL`
 
-options object properties:
+options is an array of objects:
 
-- `buffers`: { `name`: string, `data`: ArrayBuffer }[];
-- `files`: { `name`: string, `data`: File | FileList }[];
-- `blobs`: { `name`: string, `data`: Blob }[];
+{ `name`: string, `data`: ArrayBuffer | Blob | File | FileList | string };
 
-Files and Blobs are read only and content does not need to be copied entirly into WebAssemly memory. But this seems not to work with some SQLite/GPKG files - I'd guess e.g. if WAL mode is enabled. If a buffer is provided then a file is created in emscripten's memory filesystem.
+If a db is opened from a mounted path it is read only. Use db.load('path/name') to load it as read/write db.
+If `data` is a string it must be a valid URL where HEAD and Range requests are available. `name` is not required for File or FileList.
+
+You can use SQLite URIs (https://sqlite.org/c3ref/open.html#urifilenameexamples). For mounted URLs you should use `file:sqlite.db?immutable=1`.
 
 **Node**
 
-### `.mount`(`path`: string, [`mountpoint`: string]) -> `SPL`
+### `.mount`(`path`: string [, `mountpoint`: string]) -> `SPL`
 
 If no mountpoint is provided the local `path` will be mouted as root e.g. `a_dir/some_dir/some_file` is available as `some_dir/some_file` if mounted as `spl.mount(path: 'a_dir')`.
 
@@ -149,7 +147,7 @@ Terminates the WebWorker (only Browser).
 
 ### `.attach`(`db`: string, `schema`: string) -> `DB`
 ### `.detach`(`schema`: string) -> `DB`
-### `.exec`(`sql`: string, [`parameters`: any]) -> `DB`
+### `.exec`(`sql`: string [, `parameters`: any]) -> `DB`
 
 `parameters` is either an array (or array of arrays) with positional bindings or an object (or array of objects) with named bindings with the following (SQLite) templates:
 
@@ -238,7 +236,7 @@ console.assert(await spl.spatialite_version() === '5.0.1');
 
 ## Building and Testing
 
-An activated, working emsdk environment is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite are fetched from the web. The `src/spatialite` git submodule (https://salsa.debian.org/debian-gis-team/spatialite.git) needs to be initialized before running the build script.
+An activated, working emsdk environment (2.0.29) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite are fetched from the web. The `src/spatialite` git submodule (https://salsa.debian.org/debian-gis-team/spatialite.git) needs to be initialized before running the build script.
 
 ```bash
 npm install && npm run build:all
@@ -262,3 +260,21 @@ I did not create any fancy benchmark scripts. This is just a rough figure obtain
 
 - In node the performance is ~ 75% of the native SpatiaLite
 - In the browser perfomance is ~ 50% (including some overhead from the WebWorker communication)
+
+
+## License
+
+Copyright (C) 2021 Jan Vaillant
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

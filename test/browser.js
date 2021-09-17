@@ -159,3 +159,28 @@ tape('extensions', async t => {
     );
 
 });
+
+
+tape('mounting', async t => {
+
+    const file = 'files/dbs/sqlite3.db';
+    const sqlite = await fetch(file).then(res => res.arrayBuffer());
+    const spl = await SPL();
+
+    t.plan(2);
+
+    t.equals(
+        await spl.mount('a', [
+            { name: 'sqlite', data: sqlite }
+        ]).db().attach('file:a/sqlite', 'test').exec('select name from test.sqlite_master').get.first,
+        'i_am_a_file_db_table'
+    );
+
+    t.equals(
+        await spl.mount('b', [
+            { name: 'sqlite', data: new URL(file, window.location.href).toString() }
+        ]).db().attach('file:b/sqlite?immutable=1', 'test').exec('select name from test.sqlite_master').get.first,
+        'i_am_a_file_db_table'
+    );
+
+});

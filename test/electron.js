@@ -7,6 +7,6 @@ browserify(__dirname + '/browser.js', {
     ]
   })
   .bundle()
-  .pipe(taperun({ sandbox: false }))
+  .pipe(taperun({ sandbox: false, static: 'test' }))
   .on('results', console.log)
   .pipe(process.stdout);
