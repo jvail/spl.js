@@ -7,6 +7,7 @@ Module.preRun = function () {
         WORKERFS.stream_ops.read = stream_ops_read;
         WORKERFS.createNode = createNode;
     }
+
     Module.FS = FS;
     Module.NODEFS = NODEFS;
     Module.MEMFS = MEMFS;
@@ -17,8 +18,8 @@ Module.preRun = function () {
 
 const stream_ops_read = (stream, buffer, offset, length, position) => {
 
+    if (position >= stream.node.size || length == 0) return 0;
     if (stream.node.contents instanceof Blob || stream.node.contents instanceof File) {
-        if (position >= stream.node.size) return 0;
         var chunk = stream.node.contents.slice(position, position + length);
         var ab = WORKERFS.reader.readAsArrayBuffer(chunk);
         buffer.set(new Uint8Array(ab), offset);

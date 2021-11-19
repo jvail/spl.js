@@ -163,7 +163,7 @@ tape('format tests', t => {
 
 tape('parameter tests', t => {
 
-    t.plan(9);
+    t.plan(10);
 
     const db = spatial().db();
 
@@ -211,6 +211,10 @@ tape('parameter tests', t => {
             { a: 2.0, b: 2.1 },
             { a: 3.0, b: 3.1 }
         ]
+    );
+    t.equals(
+        db.exec("select * from (values ('a'), ('b')) where column1 = ?", ['a']).get.first,
+        'a'
     );
 
     db.close();
@@ -341,6 +345,26 @@ tape('mounting', t => {
             'somename/shp.zip', 'ne_110m_admin_0_countries', 'shpzip', 'CP1252'
         ]).get.objs,
         [{ count: 177 }]
+    );
+
+});
+
+tape('virtual tables', t => {
+
+    t.plan(2);
+    let db = spatial()
+        .mount(__dirname + '/files/shp/', 'shp')
+        .mount(__dirname + '/files/csv/', 'csv')
+        .db();
+
+    db.exec("create virtual table countries using virtualshape('shp/ne_110m_admin_0_countries', CP1252, 4326)");
+
+    db.exec("create virtual table places using virtualtext('csv/testcase1.csv', UTF-8, 0, POINT, DOUBLEQUOTE)");
+
+    t.equals(db.exec('select count(*) from countries').get.first, 177);
+    t.deepEquals(
+        db.exec("select col003 from places WHERE col003 = 'Canal Creek'").get.objs,
+        [ { COL003: 'Canal Creek' }, { COL003: 'Canal Creek' } ]
     );
 
 });
