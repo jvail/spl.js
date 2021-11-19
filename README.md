@@ -2,6 +2,8 @@
 
 SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and browser (async API).
 
+[Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions.
+
 ## Install
 
 ```bash
