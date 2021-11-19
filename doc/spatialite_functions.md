@@ -198,7 +198,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL utility functions [non-standard] for geometric objects
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GeomFromExifGpsBlob | GeomFromExifGpsBlob( image BLOB ) : Geometry |  | base | a POINT Geometry will be returned representing the GPS long/lat contained within EXIF-GPS metadata for the BLOB image NULL will be returned if for any reason it's not possible to create such a POINT |
 | ST_Point | ST_Point( x Double precision , y Double precision ) : Geometry |  | base | simply an alias-name for MakePoint() Please note: the SRID argument is never supported by ST_Point() |
@@ -235,7 +235,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions for constructing a geometric object given its Well-known Text Representation
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GeomFromText | GeomFromText( wkt String [ , SRID Integer] ) : Geometry ST_GeomFromText( wkt String [ , SRID Integer] ) : Geometry | X | base | construct a geometric object given its Well-known text Representation |
 | ST_WKTToSQL | ST_WKTToSQL( wkt String ) : Geometry |  | base | SQL/MM compliant: simply an alias name for ST_GeomFromText Please note: SRID=0 is always assumed. |
@@ -251,7 +251,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions for constructing a geometric object given its Well-known Binary Representation
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GeomFromWKB | GeomFromWKB( wkbGeometry Binary [ , SRID Integer] ) : Geometry ST_GeomFromWKB( wkbGeometry Binary [ , SRID Integer] ) : Geometry | X | base | construct a geometric object given its Well-known binary Representation |
 | ST_WKBToSQL | ST_WKBToSQL( wkbGeometry Binary ) : Geometry |  | base | SQL/MM compliant: simply an alias name for ST_GeomFromWKB Please note: SRID=0 is always assumed. |
@@ -267,7 +267,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions for obtaining the Well-known Text / Well-known Binary Representation of a geometric object
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | AsText | AsText( geom Geometry ) : String ST_AsText( geom Geometry ) : String | X | base | returns the Well-known Text representation |
 | AsWKT | AsWKT( geom Geometry [ , precision Integer ] ) : String |  | base | returns the Well-known Text representationalways return strictly conformant 2D WKT |
@@ -275,7 +275,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions supporting exotic geometric formats
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | AsSVG | AsSVG( geom Geometry [ , relative Integer [ , precision Integer ] ] ) : String |  | base | returns the SVG [Scalable Vector Graphics] representation |
 | AsKml | AsKml( geom Geometry [ , precision Integer ] ) : String AsKml( name String, description String, geom Geometry [ , precision Integer ] ) : String |  | PROJ | returns the KML [Keyhole Markup Language] representation The first form will simply generate the geometry element: the second form will generate a complete KML entity |
@@ -297,7 +297,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions on type Geometry
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Dimension | Dimension( geom Geometry ) : Integer ST_Dimension( geom Geometry ) : Integer | X | base | returns the dimension of the geometric object, which is less than or equal to the dimension of the coordinate space |
 | CoordDimension | CoordDimension( geom Geometry ) : String |  | base | returns the dimension model used by the geometric object as: 'XY', 'XYZ', 'XYM' or 'XYZM' |
@@ -327,7 +327,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions attempting to repair malformed Geometries
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | SanitizeGeometry | SanitizeGeometry( geom Geometry ) : geom Geometry |  | base | returns a (possibly) sanitized Geometry [if a valid Geometry was supplied], or NULL in any other case Please note: current implementations only affects: repeated vertices suppression Ring's closure enforcement  |
 | EnsureClosedRings | EnsureClosedRings( geom Geometry ) : geom Geometry |  | base | returns a new Geometry derived from the input Geometry; all Rings within the output Geometry are ensured to be correctly closed, i.e. will have exactly coincident start and end vertices. This function accepts input Geometries of any class: Point, MultiPoint, Linestring, MultiLinestring, Polygon, MultiPolygon, GeometryCollection and Geometry. Will return NULL on invalid argument.  |
@@ -335,12 +335,15 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL Geometry-compression functions
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | CompressGeometry | CompressGeometry( geom Geometry ) : geom Geometry |  | base | returns a compressed Geometry [if a valid Geometry was supplied], or NULL in any other case Please note: geometry compression only affects LINESTRINGs and POLYGONs, not POINTs |
 | UncompressGeometry | UncompressGeometry( geom Geometry ) : geom Geometry |  | base | returns an uncompressed Geometry [if a valid Geometry was supplied], or NULL in any other case |
-|  SQL Geometry-type casting functions |
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+
+# SQL Geometry-type casting functions
+
+| Function | Syntax | OGC defined | required module | Summary |
+| --- | --- | --- | --- | --- |
 | CastToPoint | CastToPoint( geom Geometry ) : geom Geometry |  | base | returns a POINT-type Geometry [if type-conversion is possible], or NULL in any other case can be applied to any Geometry containing only a single POINT and no other elementary sub-geometry |
 | CastToLinestring | CastToLinestring( geom Geometry ) : geom Geometry |  | base | returns a LINESTRING-type Geometry [if type-conversion is possible], or NULL in any other case can be applied to any Geometry containing only a single LINESTRING and no other elementary sub-geometry |
 | CastToPolygon | CastToPolygon( geom Geometry ) : geom Geometry |  | base | returns a POLYGON-type Geometry [if type-conversion is possible], or NULL in any other case can be applied to any Geometry containing only a single POLYGON and no other elementary sub-geometry |
@@ -353,7 +356,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL Space-dimensions casting functions
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | CastToXY | CastToXY( geom Geometry ) : geom Geometry |  | base | returns a Geometry using the [XY] space dimension |
 | CastToXYZ | CastToXYZ( geom Geometry ) : geom Geometry CastToXYZ( geom Geometry , no_data Double ) : geom Geometry |  | base | returns a Geometry using the [XYZ] space dimension. If the input Geometry already supports Z coordinates they'll be preserved as they are. If the input Geometry does not support Z coordinates they'll be set to no_data (defaulting to 0.0 if no_data is not specified). |
@@ -362,7 +365,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions on type Point
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | X | X( pt Point ) : Double precision ST_X( pt Point ) : Double precision | X | base | return the x-coordinate of Point p as a double precision number |
 | Y | Y( pt Point ) : Double precision ST_Y( pt Point ) : Double precision | X | base | return the y-coordinate of Point p as a double precision number |
@@ -371,7 +374,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions on type Curve [Linestring or Ring]
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | StartPoint | StartPoint( c Curve ) : Point ST_StartPoint( c Curve ) : Point | X | base | return a Point containing the first Point of c |
 | EndPoint | EndPoint( c Curve ) : Point ST_EndPoint( c Curve ) : Point | X | base | return a Point containing the last Point of c |
@@ -390,7 +393,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions on type LineString
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | NumPoints | NumPoints( line LineString ) : Integer ST_NumPoints( line LineString ) : Integer | X | base | return the number of Points in the LineString |
 | PointN | PointN( line LineString , n Integer ) : Point ST_PointN( line LineString , n Integer ) : Point | X | base | return a Point containing Point n of line (first Point corresponds to n=1) |
@@ -408,7 +411,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | UpDownHeight | UpDownHeight( line LineString ) : Double precision ST_UpDownHeight( line LineString ) : Double precision |  | base | returns the sum of total UpHill and DownHill Heights of a generic simple Linestring:  this is just a convenience method; calling ST_UpDownHeight(line) is exactly the same than calling ST_UphillHeight(geom) + ST_DownhillHeight(geom) 0.0 will be always returned for any 2D Linestring not containing Z coordinates.  NULL will be returned if any error is encountered. Note: this function only accepts simple Linestrings; Geometries containing any Point or Polygon, or containing more than a single Linesting will be considered invalid. |
 
 # SQL functions on type Surface [Polygon or Ring]
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Centroid | Centroid( s Surface ) : Point ST_Centroid( s Surface ) : Point | X | GEOS | return the centroid of s, which may lie outside s |
 | Area | Area( s Surface ) : Double precision ST_Area( s Surface ) : Double precision | X | GEOS | return the area of s |
@@ -417,20 +420,20 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | | Circularity( s Surface , use_ellipsoid Boolean ) : Double precision | X | RTTOPO | same as the above Function, but in this case areas and perimeters will be measured in meters. If the use_ellipsoid argument is set to TRUE the precise (but slower) values will be computed on the Ellipsoid, otherwise they'll be computed on the Sphere (approximative, but faster). This function only supports Long/Lat coordinates, and will return NULL for any planar CRS |
 
 # SQL functions on type Polygon
-| Function | Syntax | OGCdefined | required module | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | ExteriorRing | ExteriorRing( polyg Polygon ) : LineString ST_ExteriorRing( polyg Polygon ) : LineString | X | base | return the exteriorRing of p |
 | NumInteriorRingNumInteriorRings | NumInteriorRing( polyg Polygon ) : Integer NumInteriorRings( polyg Polygon ) : Integer ST_NumInteriorRing( polyg Polygon ) : Integer | X | base | return the number of interiorRings |
 | InteriorRingN | InteriorRingN( polyg Polygon , n Integer ) : LineString ST_InteriorRingN( polyg Polygon , n Integer ) : LineString | X | base | return the nth (1-based) interiorRing. The order of Rings is not geometrically significant. |
 
 # SQL functions on type GeomCollection
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | NumGeometries | NumGeometries( geom GeomCollection ) : Integer ST_NumGeometries( geom GeomCollection ) : Integer | X | base | return the number of individual Geometries |
 | GeometryN | GeometryN( geom GeomCollection , n Integer ) : Geometry ST_GeometryN( geom GeomCollection , n Integer ) : Geometry | X | base | return the nth (1-based) geometric object in the collection. The order of the elements in the collection is not geometrically significant. |
 
 # SQL functions that test approximate spatial relationships via MBRs
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | MbrEqual | MbrEqual( geom1 Geometry , geom2 Geometry ) : Integer |  | base | The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL or invalid arguments. TRUE if g1 and g2 have equal MBRs |
 | MbrDisjoint | MbrDisjoint( geom1 Geometry , geom2 Geometry ) : Integer |  | base | The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL or invalid arguments. TRUE if the intersection of g1 and g2 MBRs is the empty set |
@@ -442,7 +445,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | MbrContains | MbrContains( geom1 Geometry , geom2 Geometry ) : Integer |  | base | The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL arguments; convenience predicate: TRUE if g2 MBR is completely contained in g1 MBR |
 
 # SQL functions that test spatial relationships
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Equals | Equals( geom1 Geometry , geom2 Geometry ) : Integer ST_Equals( geom1 Geometry , geom2 Geometry ) : Integer | X | GEOS | The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL arguments. TRUE if g1 and g2 are equal |
 | Disjoint | Disjoint( geom1 Geometry , geom2 Geometry ) : Integer ST_Disjoint( geom1 Geometry , geom2 Geometry ) : Integer | X | GEOS | The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL arguments. TRUE if the intersection of g1 and g2 is the empty set |
@@ -459,14 +462,14 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | RelateMatch | ST_RelatedMatch( matrix Text , pattern Text ) : Integer |  | GEOS | Evaluates if an intersection matrix [DE-9IM] satisfies an intersection pattern. The return type is Integer, with a return value of 1 for TRUE, 0 for FALSE, and –1 for UNKNOWN when called with NULL or invalid arguments. |
 
 # SQL functions for distance relationships
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Distance | Distance( geom1 Geometry , geom2 Geometry ) : Double precision ST_Distance( geom1 Geometry , geom2 Geometry ) : Double precision | X | GEOS | return the distance between geom1 and geom2 (always measured in CRS units). |
 | | Distance( geom1 Geometry , geom2 Geometry , use_ellipsoid Boolean ) : Double precision ST_Distance( geom1 Geometry , geom2 Geometry , use_ellipsoid Boolean ) : Double precision | X | GEOS | return the distance between geom1 and geom2 (measured in meters). If the use_ellipsoid argument is set to TRUE the precise (but slower) distance will be computed on the Ellipsoid, otherwise will be computed on the Great Circle (approximative, but faster). This function only supports Long/Lat coordinates, and will return NULL for any planar CRS |
 | PtDistWithin | PtDistWithin( geom1 Geometry , geom2 Geometry, range Double precision [, use_spheroid Integer ] ) : Integer |  | PROJ | return TRUE (1) if the distance between geom1 and geom2 is within the given range. Usually distances are expressed in the length unit corresponding to the geoms own SRID: but if both geoms are simple POINTs and their SRID is 4326 (i.e. WGS84), then distances are expressed in meters. In this later case the optional arg use_spheroid can be used to select the distance algorithm to be used: is use_spheroid = 1 the slowest but most accurate geodesic distance will be evaluated: in any other case the simplest great circle distance will be used instead |
 
 # SQL functions supporting Linear Referencing
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | AddMeasure | ST_AddMeasure( geom Geometry , m_start Double precision , m_end Double precision ) : Geometry |  | base | Return a derived Geometry with M-values linearly interpolated between the start and end points. NULL will be returned if any error is encountered. Please note: NULL will be returned if geom is not of the Linestring or MultiLinestring type. |
 | InterpolatePoint | ST_InterpolatePoint( line Geometry , point Geometry ) : Double precision |  | GEOS | Interpolates the M-value of a linear Geometry at the point closest to the given point. NULL will be returned if any error is encountered. Please note: NULL will be returned if the first geometry is not a Linestring supporting M-values, or if the second geometry is not a Point. |
@@ -476,7 +479,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | TrajectoryInterpolatePoint | ST_TrajectoryInterpolarePoint( geom Geometry , m_value Double ) : Geometry |  | base | Check if a Geometry corresponds to a valid Trajectory. Return a POINT Geometry being interpolated along the Geometry (that is expected to be a valid Trajectory) accordingly to the given M-value. The interpolated Point will have the same dimensions and SRID of the Trajectory. NULL will be returned on invalid arguments. |
 
 # SQL functions that implement spatial operators
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Intersection | Intersection( geom1 Geometry , geom2 Geometry ) : Geometry ST_Intersection( geom1 Geometry , geom2 Geometry ) : Geometry | X | GEOS | return a geometric object that is the intersection of geometric objects geom1 and geom2 |
 | Difference | Difference( geom1 Geometry , geom2 Geometry ) : Geometry ST_Difference( geom1 Geometry , geom2 Geometry ) : Geometry | X | GEOS | return a geometric object that is the closure of the set difference of geom1 and geom2 |
@@ -522,14 +525,14 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 
 # SQL functions that implement spatial operators[GEOS advanced features]
 
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | DelaunayTriangulation | DelaunayTriangulation( geom Geometry [ , edges_only Boolean [ , tolerance Double precision ] ] ) : Geometry ST_DelaunayTriangulation( geom Geometry [ , edges_only Boolean [ , tolerance Double precision ] ] ) : Geometry |  | GEOS-advanced | return a geometric object representing the Delaunay Triangulation corresponding to the input Geometry The input Geometry could have any arbitrary type; eventually all Linestring's / Polygon's vertices will be dissolved into Points, so to implicitly always get a MultiPoint. The returned Geometry will usually be of the MultiPolygon type (a collection of Triangles), but will be a MultiLinestring if the optional edges_only argument is set to TRUE The optional argument tolerance is intended to normalize the input Geometry, suppressing repeated (or too close) Points. NULL is returned on failure. |
 | VoronojDiagram | VoronojDiagram( geom Geometry [ , edges_only Boolean [ , frame_extra_size Double precision [ , tolerance Double precision ] ] ] ) : Geometry ST_VoronojDiagram( geom Geometry [ , edges_only Boolean [ , frame_extra_size Double precision [ , tolerance Double precision ] ] ] ) : Geometry |  | GEOS-advanced | return a geometric object representing the Voronoj Diagram corresponding to the input Geometry The input Geometry could have any arbitrary type; eventually all Linestring's / Polygon's vertices will be dissolved into Points, so to implicitly always get a MultiPoint. The returned Geometry will usually be of the MultiPolygon type, but will be a MultiLinestring if the optional edges_only argument is set to TRUE The optional argument extra_frame_size allows to arbitrarily set the percent extension of the bounding frame: the default value is 5%. The optional argument tolerance is intended to normalize the input Geometry, suppressing repeated (or too close) Points. NULL is returned on failure. |
 | ConcaveHull | ConcaveHull( geom Geometry [ , factor Double precision [ , allow_holes Boolean [ , tolerance Double precision ] ] ] ) : Geometry ST_ConcaveHull( geom Geometry [ , factor Double precision [ , allow_holes Boolean [ , tolerance Double precision ] ] ] ) : Geometry |  | GEOS-advanced | return a geometric object representing the ConcaveHull corresponding to the input Geometry The input Geometry could have any arbitrary type; eventually all Linestring's / Polygon's vertices will be dissolved into Points, so to implicitly always get a MultiPoint. The returned Geometry will always be of the Polygon or MultiPolygon type. The default factor applies a 3σ filtering; by declaring some lower factor you can get a more aggressive filtering effect. By setting the optional allow_holes argument to TRUE all interior holes will be preserved. The optional argument tolerance is intended to normalize the input Geometry, suppressing repeated (or too close) Points. NULL is returned on failure. |
 
 # SQL functions that implement spatial operators [RTTOPO features]
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | MakeValid | MakeValid( geom Geometry ) : Geometry ST_MakeValid( geom Geometry ) : Geometry |  | RTTOPO | return a geometric object representing the repaired version of the input Geometry. If the input Geometry was already valid, then it will be returned exactly as it was. NULL is returned on failure. |
 | MakeValidDiscarded | MakeValidDiscarded( geom Geometry ) : Geometry ST_MakeValidDiscarded( geom Geometry ) : Geometry |  | RTTOPO | return a geometric object containing all elements that would be eventually discarded by ST_MakeValid() while validating the same input Geometry. NULL is returned on failure, or if no discarded item exists. |
@@ -552,7 +555,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | ST_Subdivide | ST_Subdivide( geom Geometry ) : Geometry ST_Subdivide( geom Geometry , max_vertices Integer ) : Geometry |  | RTTOPO | Divides geom into many parts until each part can be represented using no more than max_vertices. If the optional argument max_vertices is not explicitly specified a limit of 128 vertices is implicitly assumed. NULL will be returned on invalid arguments. |
 
 # SQL functions for coordinate transformations
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | Transform | Transform( geom Geometry , newSRID Integer ) : Geometry ST_Transform( geom Geometry , newSRID Integer ) : Geometry Transform( geom Geometry , newSRID Integer , area_of_use Geometry ) : Geometry ST_Transform( geom Geometry , newSRID Integer , area_of_use Geometry ) : Geometry Transform( geom Geometry , newSRID Integer , area_of_use Geometry , proj_string_from Text ) : Geometry ST_Transform( geom Geometry , newSRID Integer , area_of_use Geometry , proj_string_from Text ) : Geometry Transform( geom Geometry , newSRID Integer , area_of_use Geometry , proj_string_from Text , proj_string_to Text ) : Geometry ST_Transform( geom Geometry , newSRID Integer , area_of_use Geometry , proj_string_from Text , proj_string_to Text ) : Geometry |  | PROJ | return a geometric object obtained by reprojecting coordinates into the Reference System identified by newSRID All the following optional arguments are available only when SpatiaLite is built on the top of PROJ.6 (or any later version):  area_of_use: the BBOX of this Geometry (always required to be in SRID=4326) will be possibly used by PROJ.6 in order to optimize the transformation as much as possible. may be eventually NULL (default setting). proj_string_from: an user defined text string accepted by PROJ.6 identifying the origin CRS of the transformation. proj_string_to: an user defined text string accepted by PROJ.6 identifying the destination CRS of the transformation. Interpretation:  if both proj_string_from and proj_string_to are NULL (default setting) then PROJ.6 will be left free to choose the best possible transformation between the origin and the destination CRSes. if both proj_string_from and proj_string_to are instead explicitly set then PROJ.6 will be constrained to identify the origin and destination CRSes accordingly to the received string values. Valid CRS strings accepted by PROJ.6 can be:  a proj-string as e.g. +proj=longlat +datum=WGS84 +no_defs a WKT definition of the intended CRS. a CRS name as e.g. WGS 84 or Monte Mario / Italy zone 1 a canonical CRS reference as e.g. EPSG:4326 or EPSG:3003 or in the alternative notation as e.g. urn:ogc:def:crs:EPSG::3003  Special case: if only proj_string_from is explicitly set whilst proj_string_to is NULL, then proj_string_from will be expected to contain an user defined transformation pipeline Any other different combination of proj_string_from and proj_string_to will be consided invalid and will raise an exception.   |
 | TransformXY | TransformXY( geom Geometry , newSRID Integer ) : Geometry ST_TransformXY( geom Geometry , newSRID Integer ) : Geometry |  | PROJ | this is a special flavor of ST_Transform(); just X and Y coordinates will be transformed, Z and M values (if eventually present) will be left untouched.  Mainly intended as a workaround for (possibly) imprecise +towsg84 PROJ definitions; should never be used as a ST_Transform() replacement without a very careful evaluation.  |
@@ -570,7 +573,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | SwapCoordsSwapCoordinates | SwapCoords( geom Geometry ) : Geometry SwapCoordinates( geom Geometry ) : Geometry |  | base | return a geometric object obtained by swapping x- and y-coordinates |
 
 # SQL functions supporting Geodesic Arcs
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GeodesicArcLength | GeodesicArcLength( geom1 Geometry , geom2 Geometry ) : Double precision GeodesicArcLength( geom1 Geometry , geom2 Geometry , meters Boolean ) : Double precision |  | PROJ GEODESIC | returns the Arc length (distance) between geom1 and geom2 as the surface measurement of the outer circle arc / earth surface. if meters = 0 the result will be in degrees, otherwise meters [default].  will return NULL on invalid arguments, or if PROJ GEODESIC is not supported. |
 | GeodesicChordLength | GeodesicChordLength( geom1 Geometry , geom2 Geometry ) : Double precision GeodesicChordLength( geom1 Geometry , geom2 Geometry , meters Boolean ) : Double precision |  | PROJ GEODESIC | returns the length of the shortest line (distance) between geom1 and geom2 through the outer circle / earth surface. if meters = 0 the result will be in degrees, otherwise meters [default].  will return NULL on invalid arguments, or if PROJ GEODESIC is not supported. |
@@ -579,7 +582,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | GeodesicArcHeight | GeodesicArcHeight( geom1 Geometry , geom2 Geometry ) : Double precision |  | PROJ GEODESIC | returns the height of the segment/arc (short-Sagitta) between the Chord and Arc, created by geom1 and geom2, inside the outer circle / earth surface. Since the Radius is in meters, only meter values can be returned.  will return NULL on invalid arguments, or if PROJ GEODESIC is not supported. |
 
 # SQL functions supporting Affine Transformations and Ground Control Points
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | ATM_Create | ATM_Create( void ) : AffineMatrix ATM_Create( a Integer , b Integer , d Integer , e Integer , xoff Integer , yoff Integer ] ) : AffineMatrix ATM_Create( a Integer , b Integer , c Integer , d Integer , e Integer , f Integer , g Integer , h Integer , i Integer , xoff Integer , yoff Integer , zoff Integer ] ) : AffineMatrix |  | base | return a BLOB-encoded Affine Transformation matrix.  the first form (no arguments) will return an Identity matrix. the second and third forms will respectively return a fully initialized 2D or 3D Affine Transformation matrix.  will return NULL on invalid arguments. |
 | ATM_CreateTranslate | ATM_CreateTranslate( tx Double precision , ty Double precision ] ) : AffineMatrix ATM_CreateTranslate( tx Double precision , ty Double precision , tz Double precision ] ) : AffineMatrix |  | base | return a BLOB-encoded Affine Transformation matrix representing a 2D or 3D Translate transformation. will return NULL on invalid arguments. |
@@ -606,7 +609,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | GCP_Transform | GCP_Transform( geom Geometry , coeffs PolynomialCoeffs [ , newSRID Integer ] ) : Geometry |  | GrassGis codeGPLv2+ | return a geometric object obtained by applying a Transformation based on Polynomial coefficients of the 1st, 2nd or 3rd order; if the optional arg newSRID is defined then the returned Geometry will assume the corresponding Reference System, otherwise it will preserve the same Reference System of the input Geometry. will return NULL on invalid arguments. |
 
 # SQL functions for Spatial-MetaData and Spatial-Index handling
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | InitSpatialMetaData | InitSpatialMetaData( void ) : Integer InitSpatialMetaData( transaction Integer ) : Integer InitSpatialMetaData( mode String ) : Integer InitSpatialMetaData( transaction Integer , mode String ) : Integer |  | base | Creates the geometry_columns and spatial_ref_sys metadata tables the return type is Integer, with a return value of 1 for TRUE or 0 for FALSE  if the optional argument transaction is set to TRUE the whole operation will be handled as a single Transaction (faster): the default setting is transaction=FALSE (slower, but safer). if the optional argument mode is not specified then all possible ESPG SRID definitions will be inserted into the spatial_ref_sys table. if the mode arg 'WGS84' (alias 'WGS84_ONLY') is specified, then only WGS84-related EPSG SRIDs will be inserted if the mode arg 'NONE' (alias 'EMPTY') is specified, no EPSG SRID will be inserted at all  |
 | InitAdvancedMetaData | InitAdvancedMetaData( void ) : Integer InitAdvancedMetaData( transaction Integer ) : Integer  |  | base | This one simply is an utility function intended to create several ancillary metadata tables required by libspatialite v.5 and subsequent versions. the return type is Integer, with a return value of 1 for TRUE or 0 for FALSE Note: will be automatically called by both InitSpatialMetaData() or InitSpatialMetaDataFull(), but could be usefull for recovering old databases created by earlier versions; it's absolutely harmless because any existing MetaTable will be left untouched. |
@@ -639,14 +642,14 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | UpgradeGeometryTriggers | UpgradeGeometryTriggers( transaction Integer ) : integer |  | base | This function will upgrade all geometry-related Triggers to the latest version (all DB tables declaring at least one Geometry will be affected by the upgrade). If the transaction argument is set to TRUE then the whole upgrade will be safely executed within an internally defined SQL transaction. Please note: DB-files created using obsolete versions of SpatiaLite (< 4.0.0) will not be upgraded. the return type is Integer, with a return value of 1 for TRUE (success) or 0 for FALSE (failure) |
 
 # SQL functions supporting the MetaCatalog and related Statistics
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | CreateMetaCatalogTables | CreateMetaCatalogTables( transaction Integer ) : Integer |  | base | Creates both splite_metacatalog and splite_metacatalog_statistics tables; splite_metacatalog will be populated so to describe every table/column currently defined within the DB. if the first argument transaction is set to TRUE the whole operation will be handled as a single Transaction (faster): the default setting is transaction=FALSE (slower, but safer). the return type is Integer, with a return value of 1 for TRUE or 0 for FALSE |
 | UpdateMetaCatalogStatistics | UpdateMetaCatalogStatistics( transaction Integer , table_name String , column_name String ) : Integer UpdateMetaCatalogStatistics( transaction Integer , master_table String , table_name String , column_name String ) : Integer |  | base | Updates the splite_metacatalog_statistics table by computing the statistic summary for the required table/column. if the first argument transaction is set to TRUE the whole operation will be handled as a single Transaction (faster): the default setting is transaction=FALSE (slower, but safer). the first form (using three arguments) will simply attempt to update the statistic summary for a single table/column as identified by their names: a matching row is expected to be found in splite_metacatalog. the second form (using four arguments) allows to update the statistic summary for many table/columns in a single pass. in this case master_table should identify an existing table: table_name and column_name should identify two columns belonging to this tables. the statistic summary for every table/columns fetched from the master table will then be updated: any mismatching table/column will be simply ignored. the return type is Integer, with a return value of 1 for TRUE or 0 for FALSE |
 
 
 # SQL functions implementing FDO/OGR compatibility
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | CheckSpatialMetaData | CheckSpatialMetaData( void ) : Integer CheckSpatialMetaData( db_prefix String ) : Integer |  | base | Checks the Spatial Metadata type, then returning: -1 - on invalid args or if no ATTACHED-DB identified by db_prefix exists. 0 - if the geometry_columns or spatial_ref_sys table does not exists, or if their actual layout doesn't corresponds to any known implementation 1 - if both tables exist, and their layout is the one previously used by SpatiaLite legacy (older versions including 3.1.0 any earlier) 2 - if both tables exist, and their layout is the one used by FDO/OGR 3 - if both tables exist, and their layout is the one currently used by SpatiaLite (4.0.0 or any subsequent version) 4 - if the DB layout is the one defined by the OGC GPKG specification (GeoPackage)  The optional db_prefix argument specifies which one of the ATTACHED databases is intended to be checked; if unspecified or NULL then the MAIN database will be assumed by default. |
 | AutoFDOStart | AutoFDOStart( void ) : Integer AutoFDOStart( db_prefix String ) : Integer |  | base | This function will inspect the Spatial Metadata, then automatically creating/refreshing a VirtualFDO wrapper for each FDO/OGR geometry table the return type is Integer [how many VirtualFDO tables have been created] The optional db_prefix argument specifies which one of the ATTACHED databases is intended to be targeted; if unspecified or NULL then the MAIN database will be assumed by default. |
@@ -657,7 +660,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | DiscardFDOGeometryColumn | DiscardFDOGeometryColumn( table String , column String ) : Integer |  | base | Removes a geometry column from FDO/OGR Spatial MetaData tables the column itself still continues to exist untouched as an ordinary column the return type is Integer, with a return value of 1 for TRUE or 0 for FALSE |
 
 # SQL functions implementing OGC GeoPackage compatibility
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | CheckGeoPackageMetaData | CheckGeoPackageMetaData( void ) : Integer CheckGeoPackageMetaData ( db_prefix String ) : Integer |  | base | This function will inspect the DB layout checking if it corresponds to the GPKG own style. The optional db_prefix argument specifies which one of the ATTACHED databases is intended to be checked; if unspecified or NULL then the MAIN database will be assumed by default. the return type is Integer, with a return value of 1 for TRUE, 0 for FALSE and -1 on invalid args or if no ATTACHED-DB identified by db_prefix exists. |
 | AutoGPKGStart | AutoGPKGStart( void ) : Integer AutoGPKGStart( db_prefix String ) : Integer |  | GeoPackage | This function will inspect the DB layout, then automatically creating/refreshing a VirtualGPKG wrapper for each GPKG geometry table the return type is Integer [how many VirtualGPKG tables have been created] The optional db_prefix argument specifies which one of the ATTACHED databases is intended to be targeted; if unspecified or NULL then the MAIN database will be assumed by default. |
@@ -684,7 +687,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | GPKG_IsAssignable | GPKG_IsAssignable( expected_type_name String , actual_type_name String ) : Integer |  | GeoPackage | This function will check if expected_type is the same or is a super-type of actual_type; this function is required by the standard implementation of GPKG Geometry validation Triggers. the return type is Integer, with a return value of 1 for TRUE, 0 for FALSE |
 
 # SQL functions for MbrCache-based queries
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | FilterMbrWithin | FilterMbrWithin( x1 Double precision , y1 Double precision , x2 Double precision , y2 Double precision ) |  | base | Retrieves from an MbrCache any entity whose MBR falls within the rectangle identified by extreme points x1 y1 and x2 y2 |
 | FilterMbrContains | FilterMbrContains( x1 Double precision , y1 Double precision , x2 Double precision , y2 Double precision ) |  | base | Retrieves from an MbrCache any entity whose MBR contains the rectangle identified by extreme points x1 y1 and x2 y2 |
@@ -692,7 +695,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | BuildMbrFilter | BuildMbrFilter( x1 Double precision , y1 Double precision , x2 Double precision , y2 Double precision ) |  | base | Creates an MBR identified by extreme points x1 y1 and x2 y2 This fuction is used internally by triggers related to MbrCache management, and is not intended for any other usage |
 
 # SQL functions for R*Tree-based queries (Geometry Callbacks)
-| Function | Syntax | OGCdefined | requiredmodule | Summary |
+| Function | Syntax | OGC defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | RTreeIntersects | RTreeIntersects( x1 Double precision , y1 Double precision , x2 Double precision , y2 Double precision ) |  | geocallbacks | Retrieves from an R*Tree Spatial Index any entity whose MBR intersect the rectangle identified by extreme points x1 y1 and x2 y2 |
 | RTreeWithin | RTreeWithin( x1 Double precision , y1 Double precision , x2 Double precision , y2 Double precision ) |  | geocallbacks | Deprecated function Still maintained so to avoid backward compatibility issues, but now simply is an alias-name for RTreeIntersects |
@@ -728,7 +731,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | PROJ_GuessSridFromZipSHP | PROJ_GuessSridFromZipSHP( zip_path String , filename String ) : Integer | Will return the SRID value [if any] corresponding to the CRS defined by the .PRJ member of a zipped Shapefile. This function is almost the same as PROJ_GuessSridFromSHP(), except in that the Shapefile is expected to be stored within some Zipfile. The following arguments are required:  zip_path: expected to be the full or relative pathname of some Zipfile. filename base name of the Shapefile within the Zipfile (omitting any .shp, .shx or .dbf suffix).   Note: this SQL function will be available only when SpatiaLite is built on PROJ.6 (or any later version). Explicitly setting the environment variable SPATIALITE_SECURITY=relaxed is absolutely required in order to enable this function. |
 
 # SQL functions supporting Topology-Geometry
-| Function | Syntax | ISO 13249-3defined | requiredmodule | Summary |
+| Function | Syntax | ISO 13249-3defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GetLastTopologyException | GetLastTopologyException( toponame Text ) : Text |  | RTTOPO | Will return the most recent exception raised by this Topo-Geo, or NULL if no exception is currently pending. |
 | CreateTopoTables | CreateTopoTables( ) : Integer |  | RTTOPO | Will create both topologies and networks meta-tables. Will return 1 on success) or 0 on failure (including already existing tables). |
@@ -793,7 +796,7 @@ Compiled from http://www.gaia-gis.it/gaia-sins/spatialite-sql-5.0.1.html
 | TopoGeo_InsertFeatureFromTopoLayer | TopoGeo_InsertFeatureFrom( toponame Text , topolayer-name Text , out-table Text , fid Integer ) : Integer |  | RTTOPO | Will inserting a single TopoFeature identified by is fid into a GeoTable corresponding to a TopoLayer.  the output GeoTable must exist and is expected to be created by a previous call to TopoGeo_ExportTopoLayer(). the TopoFeature identified by fid must exist and a corresponding row must not be already inserted into the output GeoTable.  Will return 1 on success; an exception will be raised on failure. |
 
 # SQL functions supporting Topology-Network
-| Function | Syntax | ISO 13249-3defined | requiredmodule | Summary |
+| Function | Syntax | ISO 13249-3defined | required module | Summary |
 | --- | --- | --- | --- | --- |
 | GetLastNetworkException | GetLastNetworkException( netname Text ) : Text |  | RTTOPO | Will return the most recent exception raised by this Topo-Net, or NULL if no exception is currently pending. |
 | InitTopoNet | ST_InitTopoNet( netname Text ) : Integer | X | RTTOPO | This SQL function is explicitly required by ISO 13249-3, anyway it's simply implemented as an alias-name for CreateNetwork ( netname ). Will return 1 on success) or 0 on failure: -1 will be returned on invalid arguments. |
