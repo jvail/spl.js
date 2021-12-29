@@ -14,6 +14,26 @@ The library for browsers bundles both the WebWorker script and the wasm file (~ 
 
 ## Code Examples
 
+[Apparently](https://github.com/jvail/spl.js/issues/1) typescript does not understand the difference in between `main` and `browser` entrypoints in `package.json`. As of now - for typescript & browser development - you need to import spl.js (async version) as
+
+```ts
+import SPL from 'spl.js/dist/index'
+```
+
+or configure ts like this
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "spl.js": ["node_modules/spl.js/dist/index"]
+    }
+  }
+}
+```
+
+
 Browser: Simple Query
 
 ```js
