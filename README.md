@@ -4,6 +4,8 @@ SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and br
 
 [Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions.
 
+Comments, bug reports and suggestions are welcome! spl.js will remain beta at least until the release of SpatiaLite 5.1.0.
+
 ## Install
 
 ```bash
@@ -14,7 +16,7 @@ The library for browsers bundles both the WebWorker script and the wasm file (~ 
 
 ## Code Examples
 
-[Apparently](https://github.com/jvail/spl.js/issues/1) typescript does not understand the difference in between `main` and `browser` entrypoints in `package.json`. As of now - for typescript & browser development - you need to import spl.js (async version) as
+[Apparently](https://github.com/jvail/spl.js/issues/1) typescript does not understand the difference between `main` and `browser` entrypoints in `package.json`. As of now - for typescript & browser development - you need to import spl.js (async version) as
 
 ```ts
 import SPL from 'spl.js/dist/index'
