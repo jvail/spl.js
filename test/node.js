@@ -460,3 +460,21 @@ tape('json', t => {
     )
 
 });
+
+
+// copied from src/sqlean/test/stats.sql
+tape('extensions - stats', t => {
+
+    t.plan(7);
+
+    const db = spatial().db()
+
+    t.true(db.exec('select percentile(value, 25) = 25.5 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select round(stddev(value), 1) = 28.7 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select round(stddev_samp(value), 1) = 28.7 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select round(stddev_pop(value), 1) = 28.6 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select variance(value) = 825 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select var_samp(value) = 825 from generate_series(1, 99)').get.first);
+    t.true(db.exec('select round(var_pop(value), 0) = 817 from generate_series(1, 99)').get.first);
+
+});

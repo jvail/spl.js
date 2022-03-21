@@ -20,6 +20,7 @@ ZLIB_SRC = $(BUILD_DIR)/zlib-$(ZLIB_VERSION)
 RTTOPO_SRC = $(BUILD_DIR)/librttopo
 XML2_SRC = $(BUILD_DIR)/libxml2-$(XML2_VERSION)
 ICONV_SRC = $(BUILD_DIR)/libiconv-$(ICONV_VERSION)
+SQLEAN_EXT_SRC = src/sqlean/src
 
 DIST_FLAGS :=
 DIST_FLAGS += -s EXPORT_ES6=1
@@ -53,7 +54,7 @@ else
 	EMX_FLAGS += -Os
 endif
 
-em: dir zlib iconv sqlite proj geos rttopo xml2 spatialite
+em: dir zlib iconv sqlite proj geos rttopo xml2 spatialite extensions
 
 dir:
 	mkdir -p $(BUILD_DIR);
@@ -102,12 +103,12 @@ sqlite-src:
 sqlite-conf: sqlite-src
 	cd $(SQLITE_SRC); \
 	emconfigure ./configure $(PREFIX) \
-	--disable-static-shell --disable-shared --disable-editline --disable-readline;
+	--disable-tcl --disable-shared --disable-editline --disable-readline --disable-load-extension;
 
 sqlite: sqlite-conf
 	cd $(SQLITE_SRC); \
 	emmake make -j4 \
-	CFLAGS="$(EMX_FLAGS) -DSQLITE_ENABLE_FTS5 -DSQLITE_USE_URI=1 -DSQLITE_DQS=0 -DSQLITE_THREADSAFE=0 -DSQLITE_ENABLE_JSON1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_OMIT_DEPRECATED -DSQLITE_OMIT_TCL_VARIABLE -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_DEFAULT_FOREIGN_KEYS=1" \
+	CFLAGS="$(EMX_FLAGS) -DSQLITE_CORE -DSQLITE_ENABLE_FTS5 -DSQLITE_USE_URI=1 -DSQLITE_DQS=0 -DSQLITE_THREADSAFE=0 -DSQLITE_ENABLE_JSON1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_OMIT_DEPRECATED -DSQLITE_OMIT_TCL_VARIABLE -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_DEFAULT_FOREIGN_KEYS=1" \
 	LDFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0"; \
 	emmake make install;
 
@@ -250,6 +251,10 @@ spatialite-clean:
 	cd $(SPATIALITE_SRC) && make clean;
 
 
+extensions:
+	emcc -v -I$(SQLITE_SRC) -DSQLITE_CORE $(EMX_FLAGS) $(ELD_FLAGS) -c $(SQLEAN_EXT_SRC)/sqlite3-stats.c -o $(BC_DIR)/ex.o;
+
+
 tests:
 	cd $(SPATIALITE_SRC)/test; \
 	echo " \
@@ -272,7 +277,7 @@ tests:
 spl: src/pre.js
 	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
 	-lz -lminizip -liconv -lsqlite3 -lgeos_c -lgeos -lrttopo -lproj -L$(BC_DIR)/lib \
-	-s ERROR_ON_UNDEFINED_SYMBOLS=0 $(BC_DIR)/lib/libspatialite.a \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=0 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
 	-I$(SQLITE_SRC) \
 	-I$(SPATIALITE_SRC)/src/headers \
 	-I$(SPATIALITE_SRC)/src/headers/spatialite \

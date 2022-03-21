@@ -45,5 +45,6 @@
     "_sqlite3_backup_finish",
     "_sqlite3_errcode",
     "_gaiaOutGeoJSON",
-    "_gaiaOutBufferReset"
+    "_gaiaOutBufferReset",
+    "_sqlite3_stats_init"
 ]

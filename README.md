@@ -2,14 +2,14 @@
 
 SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and browser (async API).
 
-[Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions.
+[Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions and [a list](doc/extensions_functions.md) of available SQLite extension functions/modules.
 
 Comments, bug reports and suggestions are welcome! spl.js will remain beta at least until the release of SpatiaLite 5.1.0.
 
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.1
+npm install spl.js@0.1.0-beta.2
 ```
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.

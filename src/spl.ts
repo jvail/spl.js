@@ -58,6 +58,8 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
         spatialite_cleanup_ex = _emspl.cwrap('spatialite_cleanup_ex', 'number', ['number']),
         spatialite_shutdown = _emspl.cwrap('spatialite_shutdown', 'void', ['void']);
 
+    const sqlite3_stats_init = _emspl.cwrap('sqlite3_stats_init', 'number', ['number', 'number', 'number']);
+
     const sqlite3_open = _emspl.cwrap('sqlite3_open', 'number', ['string', 'number']),
         sqlite3_close_v2 = _emspl.cwrap('sqlite3_close_v2', 'number', ['number']),
         sqlite3_prepare_v2 = _emspl.cwrap('sqlite3_prepare_v2', 'number', ['number', 'string', 'number', 'number', 'number']),
@@ -443,12 +445,12 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
 
         tmpPtr = stackAlloc(4);
         const ret = sqlite3_open(filename || ':memory:', tmpPtr);
-        // const ret = sqlite3_open_v2(filename || ':memory:', tmpPtr, 0x00000002 + 0x00000004 + 0x00000040, 0);
         dbHandle = getValue(tmpPtr, 'i32');
 
         if (ret === SQLITE.OK) {
             cache = spatialite_alloc_connection();
             spatialite_init_ex(dbHandle, cache, false);
+            sqlite3_stats_init(dbHandle, 0, 0);
         } else {
             throw new Error(sqlite3_errmsg(dbHandle));
         }
