@@ -2,4 +2,5 @@ src/tmp
 src/build
 node_modules
 src/spatialite
+src/sqlean
 .vscode
