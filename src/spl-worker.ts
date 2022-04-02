@@ -124,30 +124,26 @@ self.onmessage = function (evt) {
     if (spl) {
         const { __id__, id, fn, args } = evt.data;
         let res = null, err = '';
-        try {
-            (async () => {
+        (async () => {
+            try {
                 let fns = (Array.isArray(fn) ? fn : [{ id, fn, args }]).map(f => {
                     const { id, fn, args } = f;
                     return exec(id, fn, args);
                 });
-                try {
-                    for await (let r of fns) {
-                        res = r
-                    }
-                } catch (error) {
-                    err = error.message || error;
-                } finally {
-                    if (res instanceof spl.db) {
-                        res = { this: 'db' };
-                    } else if (res === spl) {
-                        res = { this: 'spl' };
-                    }
-                    self.postMessage({ __id__, res, err });
+                for await (let r of fns) {
+                    res = r
                 }
-            })();
-        } catch (error) {
-            self.postMessage({ __id__, res: null, err: error.message || error });
-        }
+            } catch (error) {
+                err = error.message || error;
+            } finally {
+                if (res instanceof spl.db) {
+                    res = { this: 'db' };
+                } else if (res === spl) {
+                    res = { this: 'spl' };
+                }
+                self.postMessage({ __id__, res, err });
+            }
+        })();
     } else {
         (async () => {
             const { wasmBinary, exs, options } = evt.data

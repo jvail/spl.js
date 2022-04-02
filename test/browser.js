@@ -203,3 +203,38 @@ tape('extensions - stats', async t => {
     t.true(await db.exec('select round(var_pop(value), 0) = 817 from generate_series(1, 99)').get.first);
 
 });
+
+
+tape('sql worker error handling', async t => {
+
+    t.plan(3);
+
+    const db = await SPL().then(spl => spl.db());
+
+    t.equals(
+        await db.exec('select a').get.first
+            .then(() => false)
+            .catch(() => true),
+        true
+    );
+
+    t.equals(
+        await db.exec('select a').get.first
+            .then(() => false, () => true)
+            .catch(() => false),
+        true
+    );
+
+    t.equals(
+        await (async () => {
+            try {
+                await db.exec('select a').get.first;
+                return false;
+            } catch (_) {
+                return true;
+            }
+        })(),
+        true
+    );
+
+});

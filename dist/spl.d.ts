@@ -6,12 +6,12 @@ interface ISPLSync {
 }
 
 interface IDBSync {
-    attach(db: string, schema: string): IDB;
-    detach(schema: string): IDB;
-    exec(sql: string, par?: any): IDB;
-    read(sql: string): IDB;
-    load(src: string): IDB;
-    save(dest?: string): IDB | ArrayBuffer;
+    attach(db: string, schema: string): IDBSync;
+    detach(schema: string): IDBSync;
+    exec(sql: string, par?: any): IDBSync;
+    read(sql: string): IDBSync;
+    load(src: string): IDBSync;
+    save(dest?: string): IDBSync | ArrayBuffer;
     close(): void;
     get: {
         first: any,

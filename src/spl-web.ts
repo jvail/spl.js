@@ -55,15 +55,15 @@ const spl = function (wkr: Worker, exs=[]): ISPL {
     };
 
 
-    const post = (msg, resolve: Function =_=>_, reject: Function =_=>_): Promise<any> => {
+    const post = (msg, resolve?: Function, reject?: Function): Promise<any> => {
         return new Promise((_resolve, _reject) => {
             msg.__id__ = Math.max(-1, ...Object.keys(queue).map(id => +id)) + 1;
             queue[msg.__id__] = {
                 resolve: res => {
-                    _resolve(resolve(res));
+                    (resolve || _resolve)(res);
                 },
                 reject: err => {
-                    _reject(reject(err));
+                    (reject || _reject)(err);
                 }
             };
             wkr.postMessage(msg);
