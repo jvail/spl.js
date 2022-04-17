@@ -14,8 +14,6 @@ npm install spl.js@0.1.0-beta.3
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.
 
-## Code Examples
-
 [Apparently](https://github.com/jvail/spl.js/issues/1) typescript has no option to switch between `main` and `browser` entrypoints in `package.json`. For typescript & browser development you need to import spl.js (async version) as
 
 ```ts
@@ -35,6 +33,7 @@ or add this option to tsconfig.json
 }
 ```
 
+## Code Examples
 
 Browser: Simple Query
 
@@ -53,9 +52,11 @@ Browser: Import a GeoPackage
 
 ```js
 import SPL from 'spl.js';
-const spl = await SPL();
 
-const london = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
+const spl = await SPL();
+const url = 'https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg'
+
+const london = await fetch(url)
     .then(response => response.arrayBuffer());
 
 const db = await spl.db(london)
