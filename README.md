@@ -116,6 +116,8 @@ https://jvail.github.io/spl.js/examples/openlayers.html
 
 Source: https://github.com/jvail/spl.js/tree/main/examples
 
+Observable sample: https://observablehq.com/@bert/spatialite-with-spl-js
+
 ## API
 
 The API for node and browser (returns mostly _thenables_) is identical (almost - file handling is obviously different. See `mount` function).
