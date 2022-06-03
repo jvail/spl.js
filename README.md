@@ -116,7 +116,13 @@ https://jvail.github.io/spl.js/examples/openlayers.html
 
 Source: https://github.com/jvail/spl.js/tree/main/examples
 
-Observable sample: https://observablehq.com/@bert/spatialite-with-spl-js
+Observable samples:
+
+https://observablehq.com/@bert/spatialite-with-spl-js
+
+https://observablehq.com/@abenrob/sqlite-geospatial-getting-started
+
+https://observablehq.com/@visionscarto/hello-spl-js
 
 ## API
 
