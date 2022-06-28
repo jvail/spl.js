@@ -120,7 +120,7 @@ Observable samples:
 
 https://observablehq.com/@bert/spatialite-with-spl-js
 
-https://observablehq.com/@abenrob/sqlite-geospatial-getting-started
+https://observablehq.com/collection/@abenrob/spatialite
 
 https://observablehq.com/@visionscarto/hello-spl-js
 
