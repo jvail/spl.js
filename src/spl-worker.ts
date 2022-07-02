@@ -27,7 +27,7 @@ const extend = async (exs) => {
 
 const exec = (id: number, fn: string, args: [] = []) => {
 
-    let res = null, err = '';
+    let res = null, transferables = [], err = '';
 
     if ((fn.startsWith('db.') || fn.startsWith('res.')) && !(id in dbs)) {
         throw new Error(`Database not found`);
@@ -101,7 +101,19 @@ const exec = (id: number, fn: string, args: [] = []) => {
             break;
         case 'res.sync':
             const db = dbs[id];
-            res = [db.get.cols, db.get.rows];
+            const cols = db.get.cols;
+            const rows = db.get.rows;
+            res = [cols, rows];
+            if (cols.length && rows.length) {
+                for (let col = 0; col < cols.length; col++) {
+                    for (let row = 0; row < rows.length; row++) {
+                        const thing = rows[row][col];
+                        if (thing instanceof ArrayBuffer) {
+                            transferables.push(thing);
+                        }
+                    }
+                }
+            }
             db.get.free();
             break;
         case 'res.free':
@@ -116,14 +128,14 @@ const exec = (id: number, fn: string, args: [] = []) => {
             }
     }
 
-    return res;
+    return [res, transferables];
 
 };
 
 self.onmessage = function (evt) {
     if (spl) {
         const { __id__, id, fn, args } = evt.data;
-        let res = null, err = '';
+        let res = null, transferables = [], err = '';
         (async () => {
             try {
                 let fns = (Array.isArray(fn) ? fn : [{ id, fn, args }]).map(f => {
@@ -131,7 +143,7 @@ self.onmessage = function (evt) {
                     return exec(id, fn, args);
                 });
                 for await (let r of fns) {
-                    res = r
+                    ([res, transferables] = r);
                 }
             } catch (error) {
                 err = error.message || error;
@@ -141,7 +153,7 @@ self.onmessage = function (evt) {
                 } else if (res === spl) {
                     res = { this: 'spl' };
                 }
-                self.postMessage({ __id__, res, err });
+                self.postMessage({ __id__, res, err }, transferables);
             }
         })();
     } else {
