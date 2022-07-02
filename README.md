@@ -9,7 +9,7 @@ Comments, bug reports and suggestions are welcome! spl.js will remain beta at le
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.3
+npm install spl.js@0.1.0-beta.4
 ```
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.
@@ -35,7 +35,7 @@ or add this option to tsconfig.json
 
 ## Code Examples
 
-Browser: Simple Query
+Hello SpatiaLite
 
 ```js
 import SPL from 'spl.js';
@@ -48,7 +48,7 @@ db.exec('select ? as hello', ['spatialite']).get.objs
     .catch(err => console.log(err));
 ```
 
-Browser: Import a GeoPackage
+Import a GeoPackage
 
 ```js
 import SPL from 'spl.js';
@@ -67,16 +67,16 @@ const srid = await db.exec('select srid(geom) from london_boroughs').get.first;
 console.assert(srid === 27700)
 ```
 
-Node: Handle JSON & GeoJSON automatically (parse, stringify, geometry blob to GeoJSON)
+Handle JSON & GeoJSON automatically (parse, stringify, geometry blob to GeoJSON)
 
 ```js
-const spl = require('spl.js');
-const db = spl({
+import SPL from 'spl.js';
+const db = await SPL([], {
     autoGeoJSON: {
         precision: 0,
         options: 0
     }
-}).db()
+}).db();
 
 console.assert(
     db.exec('select json(@js)', { '@js': { hello: 'json' }}).get.first.hello === 'json'
@@ -87,40 +87,53 @@ console.assert(
 );
 ```
 
-Node: Import a zipped Shapefile
+Import a zipped Shapefile
 
 ```js
-const spl = require('spl.js');
-const db = spl().mount(__dirname + '/files/shp/').db();
+import SPL from 'spl.js';
+const spl = await SPL();
+
+const lights = await fetch('examples/lights.zip')
+    .then(response => response.blob());
+
+const db = await spl
+    .mount('data', [
+        { name: 'lights.zip', data: lights }
+    ])
+    .db()
+        .exec('SELECT ImportZipSHP(?, ?, ?, ?, ?)', [
+            '/data/lights.zip', 'lights', 'lights', 'UTF-8', 4326
+        ]);
 
 console.assert(
-    db.exec('select importzipshp($zip_path, $basename, $table, $charset) as count', {
-        $zip_path: 'shp.zip',
-        $basename: 'ne_110m_admin_0_countries',
-        $table: 'shp',
-        $charset: 'CP1252'
-    }).get.first === 177
+    db.exec('SELECT count(*) FROM lights').get.first === 17976
 );
 ```
 
 ## Live Examples
 
-Create a topology from a GeoPackage layer and simplify polygon boundaries. Be patient - spl.js needs to be fetched and building the topology will take a few seconds as well:
+Be patient - spl.js, data and other packages need to be fetched.
+
+Create a topology from a GeoPackage layer and simplify polygon boundaries:
 
 https://jvail.github.io/spl.js/examples/topology.html
 
-
-Load proj.db remotely, transform and display GeoPackage geometries in OpenLayers. Be patient - spl.js and OpenLayers needs to be fetched:
+Load proj.db remotely, transform and display GeoPackage geometries in OpenLayers:
 
 https://jvail.github.io/spl.js/examples/openlayers.html
 
-Source: https://github.com/jvail/spl.js/tree/main/examples
+Buffers & Intersections: A little test for GeoJSON vs WKB serialization and WebWorker transfer:
 
-Observable samples:
+https://jvail.github.io/spl.js/examples/lights-performance.html
 
-https://observablehq.com/@bert/spatialite-with-spl-js
+Sources: https://github.com/jvail/spl.js/tree/main/examples
+
+
+### Notebook (observablehq) examples:
 
 https://observablehq.com/collection/@abenrob/spatialite
+
+https://observablehq.com/@bert/spatialite-with-spl-js
 
 https://observablehq.com/@visionscarto/hello-spl-js
 
@@ -218,14 +231,16 @@ If `dest` [**Node Only**] is undefined or empty an ArrayBuffer is returned.
 
 ### `.get`
 
-A result object with the following properties:
+A result object with the following properties (*thenables* in a browser):
 
 ### `.first` -> any
 ### `.flat` -> any[]
 ### `.rows` -> any[][]
 ### `.cols` -> string[]
 ### `.objs` -> {}[]
-### `.sync` -> [cols, rows]
+### `.sync` -> a synchronous result object
+
+With `sync` (browser only) all ArrayBuffers will be transfered without copying (transferables) from the WebWorker.
 
 ## Extensions API (Browser only)
 

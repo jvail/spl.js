@@ -1,6 +1,6 @@
 {
   "name": "spl.js",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "main": "dist/spl.js",
   "browser": "dist/index.js",

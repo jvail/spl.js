@@ -58,7 +58,7 @@
                         const spl = await SPL();
 
                         const lights = await fetch('./lights.zip')
-                            .then(response => response.arrayBuffer());
+                            .then(response => response.blob());
 
                         const db = await spl
                             .mount('proj', [
@@ -122,7 +122,7 @@
                         markerMove.on('translating', function (evt) {
                             const [lon_, lat_] = evt.coordinate;
                             const dist = Math.sqrt(Math.pow(Math.abs(lon_ - lon), 2) + Math.pow(Math.abs(lon_ - lon), 2));
-                            if (dist > bufferWidth / 5) {
+                            if (dist > Math.max(25, bufferWidth / 10)) {
                                 lon = lon_;
                                 lat = lat_;
                                 lightsOn(lon, lat);
@@ -189,7 +189,7 @@
                         const spl = await SPL();
 
                         const lights = await fetch('./lights.zip')
-                            .then(response => response.arrayBuffer());
+                            .then(response => response.blob());
 
                         const db = await spl
                             .mount('proj', [
@@ -235,7 +235,7 @@
                                     .then(res => {
                                         const source = new ol.source.Vector({
                                             features: [
-                                                new ol.format.WKB().readFeature(res.rows[0][0], {
+                                                new ol.format.WKB().readFeature(res.first, {
                                                     dataProjection: 'EPSG:4326',
                                                     featureProjection: 'EPSG:3857', }
                                                 )
@@ -254,7 +254,7 @@
                         markerMove.on('translating', function (evt) {
                             const [lon_, lat_] = evt.coordinate;
                             const dist = Math.sqrt(Math.pow(Math.abs(lon_ - lon), 2) + Math.pow(Math.abs(lon_ - lon), 2));
-                            if (dist > bufferWidth / 5) {
+                            if (dist > Math.max(25, bufferWidth / 10)) {
                                 lon = lon_;
                                 lat = lat_;
                                 lightsOn(lon, lat);
