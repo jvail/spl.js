@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>OpenLayers</title>
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/build/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.7.0/css/ol.css">
+    <title>Street Lights</title>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.14.1/css/ol.css">
     <style>
         body {
             margin: 0px;
@@ -20,7 +20,7 @@
 
         }
         .title {
-            margin-top: 5px;
+            margin-top: 10px;
             text-align: center;
             display: block;
         }
@@ -29,7 +29,7 @@
   </head>
   <body>
     <div style="width:50%;float:left;">
-        <span class="title">Performance comparison with GeoJSON - inspired by, copied from <a href="https://observablehq.com/@abenrob/sqlite-geospatial-intersections?collection=@abenrob/spatialite"> Adam Roberts @ observablehq</a></span>
+        <pre class="title">Performance test with GeoJSON - inspired by, copied from <a href="https://observablehq.com/@abenrob/sqlite-geospatial-intersections?collection=@abenrob/spatialite">Adam Roberts @ observablehq</a></pre>
         <mwc-slider id="sliderleft" class="slider" discrete withTickMarks max="1000" min="50" value="200" step="50"></mwc-slider>
         <div id="mapleft" class="map"></div>
         <script type="module">
@@ -121,7 +121,7 @@
                         });
                         markerMove.on('translating', function (evt) {
                             const [lon_, lat_] = evt.coordinate;
-                            const dist = Math.sqrt(Math.pow(Math.abs(lon_ - lon), 2) + Math.pow(Math.abs(lon_ - lon), 2));
+                            const dist = Math.max(Math.abs(lon_ - lon), Math.abs(lat_ - lat));
                             if (dist > Math.max(25, bufferWidth / 10)) {
                                 lon = lon_;
                                 lat = lat_;
@@ -161,7 +161,7 @@
         </script>
     </div>
     <div style="width:50%;float:left;">
-        <span class="title">... and WKB & transferables from WebWorker</span>
+        <pre class="title">... and WKB & transferables from WebWorker</pre>
         <mwc-slider id="sliderright" class="slider" discrete withTickMarks max="1000" min="50" value="200" step="50"></mwc-slider>
         <div id="mapright" class="map"></div>
         <script type="module">
@@ -253,7 +253,7 @@
                         });
                         markerMove.on('translating', function (evt) {
                             const [lon_, lat_] = evt.coordinate;
-                            const dist = Math.sqrt(Math.pow(Math.abs(lon_ - lon), 2) + Math.pow(Math.abs(lon_ - lon), 2));
+                            const dist = Math.max(Math.abs(lon_ - lon), Math.abs(lat_ - lat));
                             if (dist > Math.max(25, bufferWidth / 10)) {
                                 lon = lon_;
                                 lat = lat_;

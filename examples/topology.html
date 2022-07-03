@@ -17,14 +17,16 @@
 
             </style>
         <script type="module" src="https://unpkg.com/@material/mwc-slider?module"></script>
+        <script type="module" src="https://unpkg.com/@material/mwc-circular-progress?module"></script>
     </head>
     <body>
         <pre style="text-align:center; width: 100%; margin-top: 20px;">
-            Move slider to simplify boundaries. Simplified boundaries will we visualized as soon as the topology is ready.
+            Move slider to simplify boundaries. Simplified boundaries will we visualized as soon as the topology <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> has been built from the geopackage.
         </pre>
         <div class="container">
             <mwc-slider id="slider" discrete withTickMarks max="2000" min="0" value="0" step="100"></mwc-slider>
-            <div id='svg-container' style="text-align:center; width: 100%;"></div>
+            <div id='svg-container' style="text-align:center; width: 100%;">
+            </div>
         </div>
     </body>
     <script type="module">
@@ -79,7 +81,7 @@
 
                 const srid = await db.exec('select srid(geom) from london.london_boroughs limit 1').get.first;
 
-                db.read(`
+                await db.read(`
                     create table london_boroughs_0 (name);
                     select addgeometrycolumn(\'london_boroughs_0\', \'geom\', ${srid}, \'POLYGON\');
                     insert into london_boroughs_0 select name, geomfromgpb(geom) from london.london_boroughs;
@@ -92,10 +94,11 @@
 
                 svg('london_boroughs_0');
 
-                await db.exec('select createtopology(?, ?, ?, ?)', ['topo', srid, 0, 0])
+                db.exec('select createtopology(?, ?, ?, ?)', ['topo', srid, 0, 0])
                     .exec('select topogeo_fromgeotable(?, ?, ?, ?)', [
                         'topo', null, 'london_boroughs_0', null
-                    ]);
+                    ]).then(() => document.querySelector('#progress').remove());
+
             } catch (err) {
                 console.log(err);
             }
