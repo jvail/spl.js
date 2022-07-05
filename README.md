@@ -41,10 +41,12 @@ Hello SpatiaLite
 import SPL from 'spl.js';
 const db = await SPL().then(spl => spl.db());
 
-console.assert(await db.exec('select spatialite_version()').get.first === '5.0.1');
+console.assert(
+    await db.exec('SELECT spatialite_version()').get.first === '5.0.1'
+);
 
-db.exec('select ? as hello', ['spatialite']).get.objs
-    .then(res => console.assert(res[0].hello === 'spatialite'))
+db.exec('SELECT ? AS hello', ['spatialite']).get.objs
+    .then(results => console.assert(results[0].hello === 'spatialite'))
     .catch(err => console.log(err));
 ```
 
@@ -60,9 +62,9 @@ const london = await fetch(url)
     .then(response => response.arrayBuffer());
 
 const db = await spl.db(london)
-    .exec('select enablegpkgamphibiousmode()');
+    .exec('SELECT EnableGpkgAmphibiousMode()');
 
-const srid = await db.exec('select srid(geom) from london_boroughs').get.first;
+const srid = await db.exec('SELECT SRID(geom) FROM london_boroughs').get.first;
 
 console.assert(srid === 27700)
 ```
@@ -79,11 +81,11 @@ const db = await SPL([], {
 }).db();
 
 console.assert(
-    db.exec('select json(@js)', { '@js': { hello: 'json' }}).get.first.hello === 'json'
+    await db.exec('SELECT json(@js)', { '@js': { hello: 'json' }}).get.first.hello === 'json'
 );
 
 console.assert(
-    db.exec('select geomfromtext(?)', [ 'POINT(11.1 11.1)' ]).get.first.coordinates[0] === 11
+    await db.exec('SELECT GeomFromText(?)', [ 'POINT(11.1 11.1)' ]).get.first.coordinates[0] === 11
 );
 ```
 
@@ -106,7 +108,7 @@ const db = await spl
         ]);
 
 console.assert(
-    db.exec('SELECT count(*) FROM lights').get.first === 17976
+    await db.exec('SELECT count(*) FROM lights').get.first === 17976
 );
 ```
 
@@ -139,7 +141,7 @@ https://observablehq.com/@visionscarto/hello-spl-js
 
 ## API
 
-The API for node and browser (returns mostly _thenables_) is identical (almost - file handling is obviously different. See `mount` function).
+The API for node and browser is identical (almost - file handling is obviously different. See e.g. `mount` function).
 
 If you are looking for more examples there are many snippets in the `test/node.js` and `test/browser.js` files.
 
@@ -253,8 +255,8 @@ const extensions = [
     {
         extends: 'db',
         fns: {
-            'tables': db => db.exec('select name from sqlite_master where type=\'table\''),
-            'master': (db, type) => db.exec('select name from sqlite_master where type=?', [type])
+            'tables': db => db.exec('SELECT name FROM sqlite_master WHERE type=\'table\''),
+            'master': (db, type) => db.exec('SELECT name FROM sqlite_master WHERE type=?', [type])
         }
     },
     {
@@ -262,7 +264,7 @@ const extensions = [
         fns: {
             'spatialite_version': spl => {
                 const db = spl.db();
-                const version = db.exec('select spatialite_version()').get.first;
+                const version = db.exec('SELECT spatialite_version()').get.first;
                 db.close();
                 return version;
             }
@@ -273,8 +275,8 @@ const extensions = [
 const spl = await SPL(extensions);
 const db = await spl.db()
     .read(`
-        create table hello (world);
-        create view hello_view as select * from hello;
+        CREATE TABLE hello (world);
+        CREATE VIEW hello_view AS SELECT * FROM hello;
     `);
 
 console.assert(await db.tables().get.first === 'hello');
