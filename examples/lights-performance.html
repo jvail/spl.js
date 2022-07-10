@@ -26,8 +26,14 @@
         }
     </style>
     <script type="module" src="https://unpkg.com/@material/mwc-slider?module"></script>
-  </head>
-  <body>
+</head>
+<body>
+    <script>
+        const module = {};
+    </script>
+    <script src="https://unpkg.com/lodash.debounce">
+        const debounce = module.exports;
+    </script>
     <div style="width:50%;float:left;">
         <pre class="title">Performance test with GeoJSON - inspired by, copied from <a href="https://observablehq.com/@abenrob/sqlite-geospatial-intersections?collection=@abenrob/spatialite">Adam Roberts @ observablehq</a></pre>
         <mwc-slider id="sliderleft" class="slider" discrete withTickMarks max="1000" min="50" value="200" step="50"></mwc-slider>
@@ -119,15 +125,10 @@
                         const markerMove = new ol.interaction.Translate({
                             features: new ol.Collection([marker])
                         });
-                        markerMove.on('translating', function (evt) {
-                            const [lon_, lat_] = evt.coordinate;
-                            const dist = Math.max(Math.abs(lon_ - lon), Math.abs(lat_ - lat));
-                            if (dist > Math.max(25, bufferWidth / 10)) {
-                                lon = lon_;
-                                lat = lat_;
-                                lightsOn(lon, lat);
-                            }
-                        });
+                        markerMove.on('translating', debounce(evt => {
+                            lightsOn(...evt.coordinate);
+                        }, 100, { 'maxWait': 10, 'leading': true, 'trailing': true }));
+                        markerMove.on('translateend', evt => lightsOn(...evt.coordinate));
                         map.addInteraction(markerMove);
                         map.addLayer(
                             new ol.layer.Vector({
@@ -148,9 +149,9 @@
                         let bufferWidth = 200;
                         document.querySelector('#sliderleft').addEventListener('input', evt => {
                             bufferWidth = evt.target.value;
-                            lightsOn(lon, lat);
+                            lightsOn(...marker.getGeometry().flatCoordinates);
                         });
-                        lightsOn(lon, lat);
+                        lightsOn(...marker.getGeometry().flatCoordinates);
 
                     } catch (err) {
                         console.log(err);
@@ -251,15 +252,10 @@
                         const markerMove = new ol.interaction.Translate({
                             features: new ol.Collection([marker])
                         });
-                        markerMove.on('translating', function (evt) {
-                            const [lon_, lat_] = evt.coordinate;
-                            const dist = Math.max(Math.abs(lon_ - lon), Math.abs(lat_ - lat));
-                            if (dist > Math.max(25, bufferWidth / 10)) {
-                                lon = lon_;
-                                lat = lat_;
-                                lightsOn(lon, lat);
-                            }
-                        });
+                        markerMove.on('translating', debounce(evt => {
+                            lightsOn(...evt.coordinate);
+                        }, 100, { 'maxWait': 10, 'leading': true, 'trailing': true }));
+                        markerMove.on('translateend', evt => lightsOn(...evt.coordinate));
                         map.addInteraction(markerMove);
                         map.addLayer(
                             new ol.layer.Vector({
@@ -280,9 +276,9 @@
                         let bufferWidth = 200;
                         document.querySelector('#sliderright').addEventListener('input', evt => {
                             bufferWidth = evt.target.value;
-                            lightsOn(lon, lat);
+                            lightsOn(...marker.getGeometry().flatCoordinates);
                         });
-                        lightsOn(lon, lat);
+                        lightsOn(...marker.getGeometry().flatCoordinates);
 
                     } catch (err) {
                         console.log(err);
