@@ -238,3 +238,35 @@ tape('sql worker error handling', async t => {
     );
 
 });
+
+tape('large inserts', async t => {
+
+    t.plan(2);
+
+    const db = await SPL().then(spl => spl.db());
+    const no = 10000;
+
+    let script = `
+        SELECT InitSpatialMetaData();
+        CREATE TABLE large (id INTEGER NOT NULL PRIMARY KEY);
+        SELECT AddGeometryColumn('large', 'geom', 4326, 'POLYGON', 'XY');
+    `;
+
+    const geom = `{
+        "type":"Polygon",
+        "coordinates":[[[35.172522345781324,31.807637007387367],[35.1730225777626,31.807379406789376],[35.17296088695526,31.807292779878278],[35.17246065497398,31.807550380717725],[35.172522345781324,31.807637007387367]]]
+    }`;
+    const values = []
+
+    for (let i = 0; i < no; ++i) {
+        script += `\nINSERT INTO large VALUES (${i}, SetSRID(GeomFromGeoJSON('${geom}'), 4326));`;
+        values.push([i + no, geom])
+    }
+
+    await db.read(script);
+    t.equals(await db.exec('SELECT count(*) FROM large').get.first, no);
+
+    await db.exec(`INSERT INTO large VALUES (?, SetSRID(GeomFromGeoJSON(?), 4326))`, values)
+    t.equals(await db.exec('SELECT count(*) FROM large').get.first, 2 * no);
+
+});

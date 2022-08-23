@@ -83,7 +83,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
         sqlite3_finalize = _emspl.cwrap('sqlite3_finalize', 'number', ['number']),
         // sqlite3_stmt_readonly = _emspl.cwrap('sqlite3_stmt_readonly', 'void', ['number']),
         sqlite3_bind_parameter_count = _emspl.cwrap('sqlite3_bind_parameter_count', 'number', ['number']),
-        sqlite3_exec = _emspl.cwrap('sqlite3_exec', 'number', ['number', 'string', 'number', 'number', 'number']),
+        sqlite3_exec = _emspl.cwrap('sqlite3_exec', 'number', ['number', 'number', 'number', 'number', 'number']),
         sqlite3_backup_init = _emspl.cwrap('sqlite3_backup_init', 'number', ['number', 'string', 'number', 'string']),
         sqlite3_backup_step = _emspl.cwrap('sqlite3_backup_step', 'number', ['number', 'number']),
         sqlite3_backup_finish = _emspl.cwrap('sqlite3_backup_finish', 'number', ['number']),
@@ -169,9 +169,16 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                 throw new Error('Database closed');
             }
 
-            if (sqlite3_exec(dbHandle, sql) !== SQLITE.OK) {
+            const len = lengthBytesUTF8(sql) + 1;
+            const ptr = _malloc(len);
+            stringToUTF8(sql, ptr, len);
+
+            if (sqlite3_exec(dbHandle, ptr) !== SQLITE.OK) {
+                _free(ptr)
                 throw new Error(sqlite3_errmsg(dbHandle));
             }
+
+            _free(ptr)
 
             return _db;
 
