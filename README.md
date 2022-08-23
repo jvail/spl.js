@@ -9,7 +9,7 @@ Comments, bug reports and suggestions are welcome! spl.js will remain beta at le
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.4
+npm install spl.js@0.1.0-beta.5
 ```
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.
