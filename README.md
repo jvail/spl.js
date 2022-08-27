@@ -78,14 +78,14 @@ const db = await SPL([], {
         precision: 0,
         options: 0
     }
-}).db();
+}).then(spl => spl.db());
 
 console.assert(
-    await db.exec('SELECT json(@js)', { '@js': { hello: 'json' }}).get.first.hello === 'json'
+    (await db.exec('SELECT json(@js)', { '@js': { hello: 'json' }}).get.first).hello === 'json'
 );
 
 console.assert(
-    await db.exec('SELECT GeomFromText(?)', [ 'POINT(11.1 11.1)' ]).get.first.coordinates[0] === 11
+    (await db.exec('SELECT GeomFromText(?)', [ 'POINT(11.1 11.1)' ]).get.first).coordinates[0] === 11
 );
 ```
 
