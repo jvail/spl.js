@@ -9,7 +9,7 @@ Comments, bug reports and suggestions are welcome! spl.js will remain beta at le
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.6
+npm install spl.js
 ```
 
 The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
