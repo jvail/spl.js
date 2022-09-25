@@ -467,6 +467,8 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
             FS.unlink('/tmp/' + tempname);
         }
 
+        // set path to embeded minimal proj.db
+        this.read('SELECT PROJ_SetDatabasePath(\'/proj_min.db\');');
     };
 
     this.version = () : {} => {

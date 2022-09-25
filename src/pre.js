@@ -1,6 +1,6 @@
 Module.preRun = function () {
     if (typeof ENV !== 'undefined') {
-        ENV.PROJ_LIB = './proj';
+        ENV.PROJ_LIB = '/proj';
         ENV.SPATIALITE_SECURITY = 'relaxed';
     }
     if (!ENVIRONMENT_IS_NODE) {

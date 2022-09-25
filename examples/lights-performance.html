@@ -67,9 +67,6 @@
                             .then(response => response.blob());
 
                         const db = await spl
-                            .mount('proj', [
-                                { name: 'proj.db', data: new URL('../dist/proj/proj.db', window.location.href).toString() }
-                            ])
                             .mount('data', [
                                 { name: 'lights.zip', data: lights }
                             ])
@@ -193,9 +190,6 @@
                             .then(response => response.blob());
 
                         const db = await spl
-                            .mount('proj', [
-                                { name: 'proj.db', data: new URL('../dist/proj/proj.db', window.location.href).toString() }
-                            ])
                             .mount('data', [
                                 { name: 'lights.zip', data: lights }
                             ])

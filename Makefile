@@ -5,7 +5,7 @@ PREFIX = --prefix=$(BC_DIR)
 
 SQLITE_VERSION = 3360000
 GEOS_VERSION = 3.9.0
-PROJ_VERSION = 8.1.0
+PROJ_VERSION = 9.1.0
 RTTOPO_VERSION = 1.1.0
 
 ZLIB_VERSION = 1.2.12
@@ -54,7 +54,7 @@ else
 	EMX_FLAGS += -Os
 endif
 
-em: dir zlib iconv sqlite proj geos rttopo xml2 spatialite extensions
+em: dir zlib iconv sqlite proj proj-db-min geos rttopo xml2 spatialite extensions
 
 dir:
 	mkdir -p $(BUILD_DIR);
@@ -137,6 +137,10 @@ xml2: xml2-conf
 	emmake make install;
 
 # sqlite3 executable needed for building proj.db
+
+proj-db-min:
+	cp -f $(BC_DIR)/share/proj/proj.db $(BC_DIR)/share/proj_min.db;
+	sqlite3 $(BC_DIR)/share/proj_min.db < $(PWD)/scripts/projdb_min.sql;
 
 proj-src:
 	cd $(BUILD_DIR); \
@@ -281,7 +285,7 @@ spl: src/pre.js
 	-I$(SQLITE_SRC) \
 	-I$(SPATIALITE_SRC)/src/headers \
 	-I$(SPATIALITE_SRC)/src/headers/spatialite \
-	src/spl.c --pre-js src/pre.js -o $(BUILD_DIR)/js/spl.js;
+	src/spl.c --pre-js src/pre.js -o $(BUILD_DIR)/js/spl.js --embed-file $(BC_DIR)/share/proj_min.db@/proj_min.db;
 
 clean:
 	rm -rf $(PWD)/dist/*;

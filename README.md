@@ -9,10 +9,10 @@ Comments, bug reports and suggestions are welcome! spl.js will remain beta at le
 ## Install
 
 ```bash
-npm install spl.js@0.1.0-beta.5
+npm install spl.js@0.1.0-beta.6
 ```
 
-The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). PROJ files (like proj.db) are not bundled but available from the `dist/proj` folder.
+The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
 
 [Apparently](https://github.com/jvail/spl.js/issues/1) typescript has no option to switch between `main` and `browser` entrypoints in `package.json`. For typescript & browser development you need to import spl.js (async version) as
 
@@ -286,7 +286,7 @@ console.assert(await spl.spatialite_version() === '5.0.1');
 
 ## Building and Testing
 
-An activated, working emsdk environment (2.0.29) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite are fetched from the web. The `src/spatialite` git submodule (https://salsa.debian.org/debian-gis-team/spatialite.git) needs to be initialized before running the build script.
+An activated, working emsdk environment (3.1.23) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
 
 ```bash
 npm install && npm run build:all

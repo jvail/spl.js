@@ -23,7 +23,7 @@ tape('version tests', async t => {
     );
     t.deepEqual(
         await db.exec("select proj_version()").get.objs,
-        [{ 'proj_version()': 'Rel. 8.1.0, July 1st, 2021' }]
+        [{ 'proj_version()': 'Rel. 9.1.0, September 1st, 2022' }]
     );
     t.deepEqual(
         await db.exec("select rttopo_version()").get.objs,
@@ -268,5 +268,25 @@ tape('large inserts', async t => {
 
     await db.exec(`INSERT INTO large VALUES (?, SetSRID(GeomFromGeoJSON(?), 4326))`, values)
     t.equals(await db.exec('SELECT count(*) FROM large').get.first, 2 * no);
+
+});
+
+tape('proj embeded', async t => {
+
+    t.plan(2);
+
+    const db = await SPL().then(spl => spl.db());
+
+    await db.exec('SELECT InitSpatialMetaDataFull(1)');
+
+    t.deepEqual(
+        await db.exec('SELECT Transform(GeomFromText(?, 4326), 3857)', 'Point(10 10)').get.first,
+        { type: 'Point', coordinates: [ 1113194.907933, 1118889.974858 ] }
+    );
+
+    t.deepEqual(
+        await db.exec('SELECT Transform(GeomFromText(?, 4326), 32601)', 'Point(10 10)').get.first,
+        { type: 'Point', coordinates: [ -268980.132218, 18882329.956321 ] }
+    );
 
 });

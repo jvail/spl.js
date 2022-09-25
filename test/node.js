@@ -39,7 +39,7 @@ tape('version tests', t => {
     );
     t.equal(
         db.exec("select proj_version()").get.first,
-        'Rel. 8.1.0, July 1st, 2021'
+        'Rel. 9.1.0, September 1st, 2022'
     );
     t.equal(
         db.exec("select rttopo_version()").get.first,
@@ -404,7 +404,7 @@ tape('db from arraybuffer', t => {
 
 tape('proj', t => {
 
-    t.plan(4);
+    t.plan(5);
 
     const db = spatial()
             .mount(__dirname + '/../dist/proj', 'proj')
@@ -433,6 +433,12 @@ tape('proj', t => {
             'shp.zip', 'ne_110m_admin_0_countries'
         ]).get.objs,
         [{ ProjString: '+proj=longlat +datum=WGS84 +no_defs +type=crs' }]
+    );
+
+    // test any EPSG code not available in proj_min.db
+    t.deepEqual(
+        db.exec('SELECT Transform(GeomFromText(?, 5243), 4326)', 'Point(10 10)').get.first,
+        { type: 'Point', coordinates: [ 10.500143, 51.00009 ] }
     );
 
 });
