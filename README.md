@@ -133,11 +133,9 @@ Sources: https://github.com/jvail/spl.js/tree/main/examples
 
 ### Notebook (observablehq) examples:
 
+https://observablehq.com/@neocartocnrs/spatialite
+
 https://observablehq.com/collection/@abenrob/spatialite
-
-https://observablehq.com/@bert/spatialite-with-spl-js
-
-https://observablehq.com/@visionscarto/hello-spl-js
 
 ## API
 
