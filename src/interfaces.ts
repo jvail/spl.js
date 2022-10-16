@@ -19,7 +19,8 @@ interface IDBSync {
         rows: any[],
         cols: string[],
         objs: any[],
-        sync: IResult
+        sync: IResult,
+        free(): undefined
     }
 }
 

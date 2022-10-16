@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Extensions</title>
+    <script src="https://unpkg.com/d3@4"></script>
+    <script src="https://unpkg.com/d3-geo-projection@4"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+  </head>
+  <body>
+    <canvas width="800" height="600"></canvas>
+    <script type="module">
+
+        import SPL from '../dist/index.js';
+
+        const extention = {
+            extends: 'db',
+            fns: {
+                'toTopoJSON': async (db, table, column='geometry') => {
+                    if (typeof(topojson) === 'undefined') {
+                        await import('https://unpkg.com/topojson-server@3');
+                    }
+                    return topojson.topology(db.exec(`SELECT ${column} FROM ${table}`).get.flat);
+                },
+                'timeout': async (_, delay) => {
+                    return new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        };
+
+        const spl = await SPL([extention]);
+        const db = await spl.mount('data', [{
+                name: 'world.geojson',
+                data: await fetch('world.json').then(res => res.arrayBuffer())
+            }]).db().read(`
+                SELECT InitSpatialMetaDataFull(1);
+                SELECT ImportGeoJSON('/data/world.geojson', 'world');
+            `);
+
+        const context = d3.select('canvas').node().getContext('2d');
+        const path = d3.geoPath().projection(d3.geoAitoff()).context(context);
+
+        context.beginPath();
+        path(topojson.mesh(await db.toTopoJSON('world')));
+        context.stroke();
+
+    </script>
+  </body>
+</html>

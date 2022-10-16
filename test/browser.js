@@ -111,56 +111,6 @@ tape('function chaining tests', async t => {
 
 });
 
-// TODO: firefox: Dynamic module import is disabled or not supported in this context
-tape('extensions', async t => {
-
-    const extensions = [
-        {
-            extends: 'db',
-            fns: {
-                'tables': db => db.exec('select name from sqlite_master where type=\'table\''),
-                'master': (db, type) => db.exec('select name from sqlite_master where type=?', [type])
-            }
-        },
-        {
-            extends: 'spl',
-            fns: {
-                'spatialite_version': spl => {
-                    const db = spl.db();
-                    const version = db.exec('select spatialite_version()').get.first;
-                    db.close();
-                    return version;
-                }
-            }
-        }
-    ];
-
-    const spl = await SPL(extensions);
-
-    const db = spl.db()
-        .read(`
-            create table hello (world);
-            create view hello_view as select * from hello;
-        `);
-
-    t.plan(3);
-
-    t.equals(
-        await db.tables().get.first,
-        'hello'
-    );
-    t.equals(
-        await db.master('view').get.first,
-        'hello_view'
-    );
-    t.equals(
-        await spl.spatialite_version(),
-        '5.0.1'
-    );
-
-});
-
-
 tape('mounting', async t => {
 
     const file = 'files/dbs/sqlite3.db';
@@ -244,7 +194,7 @@ tape('large inserts', async t => {
     t.plan(2);
 
     const db = await SPL().then(spl => spl.db());
-    const no = 10000;
+    const ii = 10000;
 
     let script = `
         SELECT InitSpatialMetaData();
@@ -258,16 +208,16 @@ tape('large inserts', async t => {
     }`;
     const values = []
 
-    for (let i = 0; i < no; ++i) {
+    for (let i = 0; i < ii; ++i) {
         script += `\nINSERT INTO large VALUES (${i}, SetSRID(GeomFromGeoJSON('${geom}'), 4326));`;
-        values.push([i + no, geom])
+        values.push([i + ii, geom])
     }
 
     await db.read(script);
-    t.equals(await db.exec('SELECT count(*) FROM large').get.first, no);
+    t.equals(await db.exec('SELECT count(*) FROM large').get.first, ii);
 
     await db.exec(`INSERT INTO large VALUES (?, SetSRID(GeomFromGeoJSON(?), 4326))`, values)
-    t.equals(await db.exec('SELECT count(*) FROM large').get.first, 2 * no);
+    t.equals(await db.exec('SELECT count(*) FROM large').get.first, 2 * ii);
 
 });
 
@@ -287,6 +237,62 @@ tape('proj embeded', async t => {
     t.deepEqual(
         await db.exec('SELECT Transform(GeomFromText(?, 4326), 32601)', 'Point(10 10)').get.first,
         { type: 'Point', coordinates: [ -268980.132218, 18882329.956321 ] }
+    );
+
+});
+
+// TODO: firefox: Dynamic module import is disabled or not supported in this context
+tape('extensions', async t => {
+
+    const extensions = [
+        {
+            extends: 'db',
+            fns: {
+                'tables': db => db.exec('select name from sqlite_master where type=\'table\''),
+                'master': (db, type) => db.exec('select name from sqlite_master where type=?', [type]),
+                'async_fn': (_, delay) => {
+                    return new Promise(resolve => setTimeout(resolve(delay), delay));
+                }
+            }
+        },
+        {
+            extends: 'spl',
+            fns: {
+                'spatialite_version': spl => {
+                    const db = spl.db();
+                    const version = db.exec('select spatialite_version()').get.first;
+                    db.close();
+                    return version;
+                }
+            }
+        }
+    ];
+
+    const spl = await SPL(extensions);
+
+    const db = spl.db()
+        .read(`
+            create table hello (world);
+            create view hello_view as select * from hello;
+        `);
+
+    t.plan(4);
+
+    t.equals(
+        await db.tables().get.first,
+        'hello'
+    );
+    t.equals(
+        await db.master('view').get.first,
+        'hello_view'
+    );
+    t.equals(
+        await spl.spatialite_version(),
+        '5.0.1'
+    );
+    t.equals(
+        await db.async_fn(10),
+        10
     );
 
 });
