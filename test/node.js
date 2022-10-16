@@ -27,7 +27,7 @@ tape('version tests', t => {
 
     t.equal(
         db.exec("select sqlite_version()").get.first,
-        '3.36.0'
+        '3.39.4'
     );
     t.equal(
         db.exec("select spatialite_version()").get.first,
@@ -482,5 +482,38 @@ tape('extensions - stats', t => {
     t.true(db.exec('select variance(value) = 825 from generate_series(1, 99)').get.first);
     t.true(db.exec('select var_samp(value) = 825 from generate_series(1, 99)').get.first);
     t.true(db.exec('select round(var_pop(value), 0) = 817 from generate_series(1, 99)').get.first);
+
+});
+
+
+tape('autoincrement: https://github.com/jvail/spl.js/issues/15', t => {
+
+    t.plan(1);
+
+    const db = spatial().db()
+    const srid = 32636;
+    const tableName = "test";
+    const script = `
+        SELECT InitSpatialMetadata(1);
+        --CREATE TABLE ${tableName} (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, field INTEGER, src_id TEXT);
+        CREATE TABLE ${tableName} (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, field INTEGER, src_id TEXT);
+        SELECT AddGeometryColumn('${tableName}', 'geometry', ${srid}, 'GEOMETRY', 'XY');
+    `;
+    db.read(script);
+    const batchSize = 10000;
+    const geom = '{"type": "Polygon", "coordinates": [[[35.172522345781324,31.807637007387367],[35.1730225777626,31.807379406789376],[35.17296088695526,31.807292779878278],[35.17246065497398,31.807550380717725],[35.172522345781324,31.807637007387367]]]}';
+
+    const parameters = [];
+    for (let i = 0; i < batchSize; ++i) {
+        parameters.push({
+        "@field": i,
+        "@src_id": i.toString(),
+        "@geometry": geom
+        });
+    }
+    const statement = `INSERT OR REPLACE INTO ${tableName} (field, src_id, geometry) VALUES (@field, @src_id, ST_Transform(SetSRID(GeomFromGeoJSON(@geometry), 4326), ${srid}));`;
+    db.exec(statement, parameters);
+
+    t.equals(db.exec('select max(id) from test').get.first, batchSize);
 
 });

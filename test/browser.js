@@ -11,7 +11,7 @@ tape('version tests', async t => {
 
     t.deepEqual(
         await db.exec("select sqlite_version()").get.objs,
-        [{ 'sqlite_version()': '3.36.0' }]
+        [{ 'sqlite_version()': '3.39.4' }]
     );
     t.deepEqual(
         await db.exec("select spatialite_version()").get.objs,
@@ -197,9 +197,9 @@ tape('large inserts', async t => {
     const ii = 10000;
 
     let script = `
-        SELECT InitSpatialMetaData();
-        CREATE TABLE large (id INTEGER NOT NULL PRIMARY KEY);
-        SELECT AddGeometryColumn('large', 'geom', 4326, 'POLYGON', 'XY');
+        SELECT InitSpatialMetaData(1);
+        CREATE TABLE large (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT);
+        SELECT AddGeometryColumn('large', 'geometry', 4326, 'GEOMETRY', 'XY');
     `;
 
     const geom = `{
@@ -209,14 +209,14 @@ tape('large inserts', async t => {
     const values = []
 
     for (let i = 0; i < ii; ++i) {
-        script += `\nINSERT INTO large VALUES (${i}, SetSRID(GeomFromGeoJSON('${geom}'), 4326));`;
-        values.push([i + ii, geom])
+        script += `\nINSERT INTO large (geometry) VALUES (SetSRID(GeomFromGeoJSON('${geom}'), 4326));`;
+        values.push(geom)
     }
 
     await db.read(script);
     t.equals(await db.exec('SELECT count(*) FROM large').get.first, ii);
 
-    await db.exec(`INSERT INTO large VALUES (?, SetSRID(GeomFromGeoJSON(?), 4326))`, values)
+    await db.exec(`INSERT OR REPLACE INTO large (geometry) VALUES (SetSRID(GeomFromGeoJSON(?), 4326))`, values)
     t.equals(await db.exec('SELECT count(*) FROM large').get.first, 2 * ii);
 
 });
