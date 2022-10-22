@@ -5,6 +5,7 @@
     <title>OpenLayers</title>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.css">
+    <script type="module" src="https://unpkg.com/@material/mwc-circular-progress?module"></script>
     <style>
         body {
             margin: 0px;
@@ -17,6 +18,9 @@
     </style>
   </head>
   <body>
+    <pre style="text-align:center; width: 100%; margin-top: 20px;">
+        Wait for loading <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> geopackage & proj.db.
+    </pre>
     <div id="map" class="map"></div>
     <script type="module">
 
@@ -60,19 +64,22 @@
                         `);
 
                 // geoms are already GeoJSON objects. No need for AsGeoJSON().
-                const geoms = await db.exec('select transform(geom, 3857) from london_boroughs').get.flat;
+                db.exec('select transform(geom, 3857) from london_boroughs').get.flat
+                    .then(geoms => {
+                        document.querySelector('#progress').remove();
 
-                const collection = {
-                    type: 'FeatureCollection',
-                    features: geoms.map(geometry => ({ type: 'Feature', geometry }))
-                };
+                        const collection = {
+                            type: 'FeatureCollection',
+                            features: geoms.map(geometry => ({ type: 'Feature', geometry }))
+                        };
 
-                const source = new ol.source.Vector({
-                    features: new ol.format.GeoJSON().readFeatures(collection),
-                });
+                        const source = new ol.source.Vector({
+                            features: new ol.format.GeoJSON().readFeatures(collection),
+                        });
 
-                map.addLayer(new ol.layer.Vector({ source }));
-                map.getView().fit(source.getExtent());
+                        map.addLayer(new ol.layer.Vector({ source }));
+                        map.getView().fit(source.getExtent());
+                    });
 
             } catch (err) {
                 console.log(err);

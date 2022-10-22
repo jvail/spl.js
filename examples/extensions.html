@@ -6,8 +6,12 @@
     <script src="https://unpkg.com/d3@4"></script>
     <script src="https://unpkg.com/d3-geo-projection@4"></script>
     <script src="https://unpkg.com/topojson-client@3"></script>
+    <script type="module" src="https://unpkg.com/@material/mwc-circular-progress?module"></script>
   </head>
   <body>
+    <pre style="text-align:center; width: 100%; margin-top: 20px;">
+        Wait for loading & creating <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> TopoJSON from a GeoJSON file inside the worker extension.
+    </pre>
     <canvas width="800" height="600"></canvas>
     <script type="module">
 
@@ -40,9 +44,12 @@
         const context = d3.select('canvas').node().getContext('2d');
         const path = d3.geoPath().projection(d3.geoAitoff()).context(context);
 
-        context.beginPath();
-        path(topojson.mesh(await db.toTopoJSON('world')));
-        context.stroke();
+        db.toTopoJSON('world').then(topology => {
+            context.beginPath();
+            document.querySelector('#progress').remove();
+            path(topojson.mesh(topology));
+            context.stroke();
+        });
 
     </script>
   </body>
