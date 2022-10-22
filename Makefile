@@ -8,7 +8,7 @@ GEOS_VERSION = 3.9.0
 PROJ_VERSION = 9.1.0
 RTTOPO_VERSION = 1.1.0
 
-ZLIB_VERSION = 1.2.12
+ZLIB_VERSION = 1.2.13
 XML2_VERSION = 2.9.12
 ICONV_VERSION = 1.16
 
@@ -78,7 +78,7 @@ zlib: zlib-conf
 
 zlib-src:
 	cd $(BUILD_DIR); \
-	wget -nc http://zlib.net/zlib-$(ZLIB_VERSION).tar.gz; \
+	wget -nc https://zlib.net/zlib-$(ZLIB_VERSION).tar.gz; \
 	tar -xf zlib-$(ZLIB_VERSION).tar.gz;
 
 iconv-conf: iconv-src
