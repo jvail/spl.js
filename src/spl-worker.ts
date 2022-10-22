@@ -1,31 +1,11 @@
 import SPL from './spl';
-import result from './result';
 import {ISPLSync, IDBSync} from './interfaces';
 
-const dbs: { [index: number]: any } = {};
+const dbs: { [index: number]: IDBSync } = {};
 let spl: ISPLSync = null;
-let extensions = {};
-// const maybe_awaitable = (fn) => async (that, args) => await fn(that, ...args);
+const extensions = {};
 
-const extend = async (exs) => {
-    const extensions = {};
-    // @ts-ignore
-    for await (let module of exs.map(ex => import(ex.url))) {
-        const ex = exs.shift();
-        if (ex.extends === 'db') {
-            Object.keys(ex.fns).forEach(fn => {
-                extensions[`db.${fn}`] = module[ex.fns[fn]];
-            });
-        } else if (ex.extends === 'spl') {
-            Object.keys(ex.fns).forEach(fn => {
-                extensions[fn] = module[ex.fns[fn]];
-            });
-        }
-    }
-    return Promise.resolve(extensions);
-};
-
-const exec = (id: number, fn: string, args: [] = []) => {
+const exec = (id: number, fn: string, args: [] = []): any => {
 
     let res = null, transferables = [], err = '';
 
@@ -138,12 +118,16 @@ self.onmessage = function (evt) {
         let res = null, transferables = [], err = '';
         (async () => {
             try {
-                let fns = (Array.isArray(fn) ? fn : [{ id, fn, args }]).map(f => {
-                    const { id, fn, args } = f;
-                    return exec(id, fn, args);
-                });
-                for await (let r of fns) {
-                    ([res, transferables] = r);
+                async function* fnExec() {
+                    let execArgs = Array.isArray(fn) ? fn : [{ id, fn, args }];
+                    for (let execArg of execArgs) {
+                        const { id, fn, args } = execArg;
+                        const [maybePromise, transferables] = exec(id, fn, args);
+                        yield [await maybePromise, transferables];
+                    }
+                };
+                for await (const _res of fnExec()) {
+                    ([res, transferables] = _res);
                 }
             } catch (error) {
                 err = error.message || error;
@@ -159,7 +143,20 @@ self.onmessage = function (evt) {
     } else {
         (async () => {
             const { wasmBinary, exs, options } = evt.data
-            extensions = await extend(exs);
+            // @ts-ignore
+            const modules = await Promise.all(exs.map(ex => import(ex.url)));
+            exs.forEach((ex, i) => {
+                const module = modules[i];
+                if (ex.extends === 'db') {
+                    Object.keys(ex.fns).forEach(fn => {
+                        extensions[`db.${fn}`] = module[ex.fns[fn]];
+                    });
+                } else if (ex.extends === 'spl') {
+                    Object.keys(ex.fns).forEach(fn => {
+                        extensions[fn] = module[ex.fns[fn]];
+                    });
+                }
+            });
             spl = SPL(wasmBinary, options);
             self.postMessage(null);
         })();

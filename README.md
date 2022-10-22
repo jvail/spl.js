@@ -12,7 +12,10 @@ Comments, bug reports and suggestions are welcome! spl.js will remain beta at le
 npm install spl.js
 ```
 
-The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB). A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
+The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB).
+
+A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
+If you like to use the full proj.db instead you need to mount it to `/proj/proj.db` and set the path with spatialite's `PROJ_SetDatabasePath`.
 
 [Apparently](https://github.com/jvail/spl.js/issues/1) typescript has no option to switch between `main` and `browser` entrypoints in `package.json`. For typescript & browser development you need to import spl.js (async version) as
 
@@ -244,7 +247,11 @@ With `sync` (browser only) all ArrayBuffers will be transfered without copying (
 
 ## Extensions API (Browser only)
 
+*Experimental since Firefox does currently not support dynamic imports in Workers.*
+
 Sometimes you want to run code inside the WebWorker. With this API you can supply additional functions to extend the `SPL` and `DB` APIs executed inside the WebWorker.
+
+Example: https://jvail.github.io/spl.js/examples/extensions.html
 
 ### Example Code
 

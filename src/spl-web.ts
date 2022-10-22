@@ -77,7 +77,7 @@ const spl = function (wkr: Worker, exs=[]): ISPL {
                     return post({
                         fn: stackSpl.splice(0)
                     }, res => {
-                        if (res.this === 'spl') {
+                        if (typeof(res) === 'object' && res.this === 'spl') {
                             this.then = this;
                             resolve(this);
                         } else {
@@ -118,7 +118,7 @@ const spl = function (wkr: Worker, exs=[]): ISPL {
                         return post({
                             fn: stackDB.splice(0)
                         }, res => {
-                            if (res.this === 'db') {
+                            if (typeof(res) === 'object' && res.this === 'db') {
                                 this.then = this;
                                 resolve(this);
                             // } else if (res.__res && Number.isFinite(res.__res)) {
