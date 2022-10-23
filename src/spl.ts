@@ -171,6 +171,9 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
 
             const len = lengthBytesUTF8(sql) + 1;
             const ptr = _malloc(len);
+            if (!ptr) {
+                throw new Error("Unable to allocate memory");
+            }
             stringToUTF8(sql, ptr, len);
 
             if (sqlite3_exec(dbHandle, ptr) !== SQLITE.OK) {
@@ -252,6 +255,11 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
 
         };
 
+        function freeMem(mem: number[]) {
+            mem.forEach(ptr => _free(ptr));
+            mem.length = 0;
+        }
+
         this.exec = (sql, par) => {
 
             if (!dbHandle || !cache) {
@@ -332,12 +340,17 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                                 case 'string':
                                     len = lengthBytesUTF8(val) + 1;
                                     ptr = _malloc(len);
+                                    if (!ptr) {
+                                        freeMem(mem);
+                                        throw new Error("Unable to allocate memory");
+                                    }
                                     stringToUTF8(val, ptr, len);
                                     mem.push(ptr);
                                     ret = sqlite3_bind_text(stmt, idx, ptr, len - 1, 0);
                                     break;
                                 case 'boolean':
                                     ret = sqlite3_bind_int(stmt, idx, +val);
+                                    break;
                                 case 'number':
                                     ret = Number.isInteger(val) ? sqlite3_bind_int(stmt, idx, val) : sqlite3_bind_double(stmt, idx, val);
                                     break;
@@ -345,6 +358,10 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                                     if (val instanceof ArrayBuffer) {
                                         len = val.byteLength;
                                         ptr = _malloc(len);
+                                        if (!ptr) {
+                                            freeMem(mem);
+                                            throw new Error("Unable to allocate memory");
+                                        }
                                         writeArrayToMemory(new Uint8Array(val), ptr);
                                         mem.push(ptr);
                                         ret = sqlite3_bind_blob(stmt, idx, ptr, len);
@@ -352,6 +369,10 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                                         const json = JSON.stringify(val);
                                         len = lengthBytesUTF8(json) + 1;
                                         ptr = _malloc(len);
+                                        if (!ptr) {
+                                            freeMem(mem);
+                                            throw new Error("Unable to allocate memory");
+                                        }
                                         stringToUTF8(json, ptr, len);
                                         mem.push(ptr);
                                         ret = sqlite3_bind_text(stmt, idx, ptr, len, 0);
@@ -365,7 +386,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                             };
                             if (ret !== SQLITE.OK) {
                                 sqlite3_finalize(stmt);
-                                mem.forEach(ptr => _free(ptr));
+                                freeMem(mem);
                                 throw new Error(sqlite3_errmsg(dbHandle));
                             }
                         };
@@ -410,8 +431,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                     }
                     rows.push(row);
                 };
-
-                mem.forEach(ptr => _free(ptr));
+                freeMem(mem);
                 sqlite3_reset(stmt);
                 sqlite3_clear_bindings(stmt);
 
