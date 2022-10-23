@@ -1,6 +1,6 @@
 import emspl from './build/js/spl.js';
 import result from './result';
-import { version as spatial_version } from '../package.json';
+import { version as spl_version } from '../package.json';
 import {
     ISPLSync,
     IDBSync,
@@ -95,50 +95,54 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
 
         // TODO: save -> return buffer if no path given also in web; fix uncaught in promise; wal mode problem if opened from blob
 
-        this.db = function(sqlite3?: string | ArrayBuffer) {
+    this.db = function(sqlite3?: string | ArrayBuffer) {
 
-            // @ts-ignore
-            if (!new.target) return Object.freeze(new _spl.db(sqlite3, options));
+        // @ts-ignore
+        if (!new.target) return Object.freeze(new _spl.db(sqlite3, options));
 
-            const _db = this;
-            let _result = result();
-            let tmpPtr = 0;
-            let dbHandle = 0;
-            let cache = 0;
-            let filename = '';
-            const ptr_initGaiaOutBuffer = stackAlloc(4);
-            initGaiaOutBuffer(ptr_initGaiaOutBuffer);
-            const gaiaOutBuffer = getValue(ptr_initGaiaOutBuffer, 'i32');
+        const _db = this;
+        let _result = result();
+        let tmpPtr = 0;
+        let dbHandle = 0;
+        let cache = 0;
+        let filename = '';
+        const ptr_initGaiaOutBuffer = stackAlloc(4);
+        initGaiaOutBuffer(ptr_initGaiaOutBuffer);
+        const gaiaOutBuffer = getValue(ptr_initGaiaOutBuffer, 'i32');
 
-            const memname = (): string => `mem-${(Math.round(Number.MAX_SAFE_INTEGER * Math.random()))}.db`;
-            const toGeoJSON = (blob_ptr, size, precison, options)  => {
-                let obj = null;
-                let buf_ptr = gaiaToJSON(gaiaOutBuffer, blob_ptr, size, precison, options);
-                if (buf_ptr) {
-                    obj = JSON.parse(UTF8ToString(buf_ptr));
-                }
-                gaiaOutBufferReset(gaiaOutBuffer);
-                return obj;
-            };
-            const isParam = obj => {
-                return !!obj &&
-                    typeof(obj) === 'object' &&
-                    Object.keys(obj).length &&
-                    Object.keys(obj).every(key => key.startsWith(':') || key.startsWith('$') || key.startsWith('@'));
-            };
-            const maybeJSON = (str: string) => {
-                return (str.startsWith('"') && str.endsWith('"')) ||
-                    str === 'null' ||
-                    (str.startsWith('{') && str.endsWith('}')) ||
-                    (str.startsWith('[') && str.endsWith(']'));
-            };
+        const memname = (): string => `mem-${(Math.round(Number.MAX_SAFE_INTEGER * Math.random()))}.db`;
+        const toGeoJSON = (blob_ptr, size, precison, options)  => {
+            let obj = null;
+            let buf_ptr = gaiaToJSON(gaiaOutBuffer, blob_ptr, size, precison, options);
+            if (buf_ptr) {
+                obj = JSON.parse(UTF8ToString(buf_ptr));
+            }
+            gaiaOutBufferReset(gaiaOutBuffer);
+            return obj;
+        };
+        const isParam = obj => {
+            return !!obj &&
+                typeof(obj) === 'object' &&
+                Object.keys(obj).length &&
+                Object.keys(obj).every(key => key.startsWith(':') || key.startsWith('$') || key.startsWith('@'));
+        };
+        const maybeJSON = (str: string) => {
+            return (str.startsWith('"') && str.endsWith('"')) ||
+                str === 'null' ||
+                (str.startsWith('{') && str.endsWith('}')) ||
+                (str.startsWith('[') && str.endsWith(']'));
+        };
+        const freeMemory = (ptrs: number[]) => {
+            ptrs.forEach(ptr => _free(ptr));
+            ptrs.length = 0;
+        };
 
-            Object.defineProperty(this, 'get', { get: () => _result });
+        Object.defineProperty(this, 'get', { get: () => _result });
 
-            this.close = (): ISPLSync => {
+        this.close = (): ISPLSync => {
 
-                if (!dbHandle || !cache) {
-                    throw new Error('Database closed');
+            if (!dbHandle || !cache) {
+                throw new Error('Database closed');
             }
 
             const ret = sqlite3_close_v2(dbHandle);
@@ -255,18 +259,13 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
 
         };
 
-        function freeMem(mem: number[]) {
-            mem.forEach(ptr => _free(ptr));
-            mem.length = 0;
-        }
-
         this.exec = (sql, par) => {
 
             if (!dbHandle || !cache) {
                 throw new Error('Database closed');
             }
 
-            let ret, mem = [];
+            let ret, ptrs = [];
             const rows = [];
             setValue(tmpPtr, 0, 'i32');
 
@@ -341,11 +340,11 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                                     len = lengthBytesUTF8(val) + 1;
                                     ptr = _malloc(len);
                                     if (!ptr) {
-                                        freeMem(mem);
+                                        freeMemory(ptrs);
                                         throw new Error("Unable to allocate memory");
                                     }
                                     stringToUTF8(val, ptr, len);
-                                    mem.push(ptr);
+                                    ptrs.push(ptr);
                                     ret = sqlite3_bind_text(stmt, idx, ptr, len - 1, 0);
                                     break;
                                 case 'boolean':
@@ -359,22 +358,22 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                                         len = val.byteLength;
                                         ptr = _malloc(len);
                                         if (!ptr) {
-                                            freeMem(mem);
+                                            freeMemory(ptrs);
                                             throw new Error("Unable to allocate memory");
                                         }
                                         writeArrayToMemory(new Uint8Array(val), ptr);
-                                        mem.push(ptr);
+                                        ptrs.push(ptr);
                                         ret = sqlite3_bind_blob(stmt, idx, ptr, len);
                                     } else if (!!val && splOptions.autoJSON) {
                                         const json = JSON.stringify(val);
                                         len = lengthBytesUTF8(json) + 1;
                                         ptr = _malloc(len);
                                         if (!ptr) {
-                                            freeMem(mem);
+                                            freeMemory(ptrs);
                                             throw new Error("Unable to allocate memory");
                                         }
                                         stringToUTF8(json, ptr, len);
-                                        mem.push(ptr);
+                                        ptrs.push(ptr);
                                         ret = sqlite3_bind_text(stmt, idx, ptr, len, 0);
                                     } else {
                                         ret = sqlite3_bind_null(stmt, idx);
@@ -386,7 +385,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                             };
                             if (ret !== SQLITE.OK) {
                                 sqlite3_finalize(stmt);
-                                freeMem(mem);
+                                freeMemory(ptrs);
                                 throw new Error(sqlite3_errmsg(dbHandle));
                             }
                         };
@@ -431,7 +430,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
                     }
                     rows.push(row);
                 };
-                freeMem(mem);
+                freeMemory(ptrs);
                 sqlite3_reset(stmt);
                 sqlite3_clear_bindings(stmt);
 
@@ -500,7 +499,7 @@ const spl = function (wasmBinary=null, options: ISplOptions | {} ={}): ISPLSync 
         geos_version() geos,
         proj_version() proj,
         rttopo_version() rttopo,
-        '${spatial_version}' 'spatial.js'`);
+        '${spl_version}' 'spl.js'`);
         db_.close();
 
         return ret[0];
