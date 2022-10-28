@@ -1,91 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>OpenLayers</title>
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.css">
-    <script type="module" src="https://unpkg.com/@material/mwc-circular-progress?module"></script>
-    <style>
-        body {
-            margin: 0px;
-        }
-        .map {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-        }
-    </style>
-  </head>
-  <body>
-    <pre style="text-align:center; width: 100%; margin-top: 20px;">
-        Wait for loading <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> geopackage & proj.db.
-    </pre>
-    <div id="map" class="map"></div>
-    <script type="module">
+    <head>
+        <meta charset="UTF-8">
+        <title>OpenLayers</title>
+        <style>
+            @import "./lib/ol.css";
+            body {
+                margin: 0px;
+            }
+            .map {
+                width: 100%;
+                height: 100%;
+                position: fixed;
+            }
+        </style>
+    </head>
+    <body>
+        <pre style="text-align:center; width: 100%; margin-top: 20px;">
+            Wait for loading <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> geopackage & proj.db.
+        </pre>
+        <div id="map" class="map"></div>
+        <script type="module">
 
-        import SPL from '../dist/index.js';
+            import { ol } from "./lib/lib.js";
+            import SPL from '../dist/index.js';
 
-        const map = new ol.Map({
-            layers: [
-                new ol.layer.Tile({
-                    source: new ol.source.OSM(),
+            const map = new ol.Map({
+                layers: [
+                    new ol.TileLayer({
+                        source: new ol.OSM(),
+                    })
+                ],
+                target: 'map',
+                view: new ol.View({
+                    center: [0, 0],
+                    zoom: 2
                 })
-            ],
-            target: 'map',
-            view: new ol.View({
-                center: [0, 0],
-                zoom: 2
-            })
-        });
+            });
 
-        (async () => {
-            try {
+            (async () => {
+                try {
 
-                const spl = await SPL();
+                    const spl = await SPL();
 
-                // const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
-                //     .then(response => response.blob());
+                    // const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
+                    //     .then(response => response.blob());
 
-                const db = await spl
-                    .mount('proj', [
-                        // Mounts proj.db required for transformation of EPSG 27700 to 3857.
-                        // Instead of downloading the entire db spl/sqlite will only fetch required db pages.
-                        { name: 'proj.db', data: new URL('../dist/proj/proj.db', window.location.href).toString() }
-                    ])
-                    .mount('data', [
-                        { name: 'london_boroughs.gpkg', data: new URL('../test/files/dbs/london.gpkg', window.location.href).toString() }
-                    ]).db()
-                        .load('file:data/london_boroughs.gpkg?immutable=1')
-                        .read(`
-                            select enablegpkgmode();
-                            select initspatialmetadata(1);
-                            select PROJ_SetDatabasePath('/proj/proj.db'); -- set proj.db path
-                        `);
+                    const db = await spl
+                        .mount('proj', [
+                            // Mounts proj.db required for transformation of EPSG 27700 to 3857.
+                            // Instead of downloading the entire db spl/sqlite will only fetch required db pages.
+                            { name: 'proj.db', data: new URL('../dist/proj/proj.db', window.location.href).toString() }
+                        ])
+                        .mount('data', [
+                            { name: 'london_boroughs.gpkg', data: new URL('../test/files/dbs/london.gpkg', window.location.href).toString() }
+                        ]).db()
+                            .load('file:data/london_boroughs.gpkg?immutable=1')
+                            .read(`
+                                select enablegpkgmode();
+                                select initspatialmetadata(1);
+                                select PROJ_SetDatabasePath('/proj/proj.db'); -- set proj.db path
+                            `);
 
-                // geoms are already GeoJSON objects. No need for AsGeoJSON().
-                db.exec('select transform(geom, 3857) from london_boroughs').get.flat
-                    .then(geoms => {
-                        document.querySelector('#progress').remove();
+                    // geoms are already GeoJSON objects. No need for AsGeoJSON().
+                    db.exec('select transform(geom, 3857) from london_boroughs').get.flat
+                        .then(geoms => {
+                            document.querySelector('#progress').remove();
 
-                        const collection = {
-                            type: 'FeatureCollection',
-                            features: geoms.map(geometry => ({ type: 'Feature', geometry }))
-                        };
+                            const collection = {
+                                type: 'FeatureCollection',
+                                features: geoms.map(geometry => ({ type: 'Feature', geometry }))
+                            };
 
-                        const source = new ol.source.Vector({
-                            features: new ol.format.GeoJSON().readFeatures(collection),
+                            const source = new ol.Vector({
+                                features: new ol.GeoJSON().readFeatures(collection),
+                            });
+
+                            map.addLayer(new ol.VectorLayer({ source }));
+                            map.getView().fit(source.getExtent());
                         });
 
-                        map.addLayer(new ol.layer.Vector({ source }));
-                        map.getView().fit(source.getExtent());
-                    });
+                } catch (err) {
+                    console.log(err);
+                }
+            })();
 
-            } catch (err) {
-                console.log(err);
-            }
-        })();
-
-    </script>
-  </body>
+        </script>
+    </body>
 </html>
