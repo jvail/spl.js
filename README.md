@@ -10,7 +10,7 @@ SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and br
 npm install spl.js
 ```
 
-The library for browsers bundles both the WebWorker script and the wasm file (~ 4MB).
+The library for browsers bundles both the WebWorker script and the wasm file (~ 5MB).
 
 A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
 If you like to use the full proj.db instead you need to mount it to `/proj/proj.db` and set the path with spatialite's `PROJ_SetDatabasePath`.
@@ -56,7 +56,7 @@ Handle JSON & GeoJSON automatically (parse, stringify, geometry blob to GeoJSON)
 
 ```js
 import SPL from 'spl.js';
-const db = await SPL([], {
+const db = await SPL({
     autoGeoJSON: {
         precision: 0,
         options: 0
@@ -114,11 +114,7 @@ https://jvail.github.io/spl.js/examples/lights-performance.html
 Sources: https://github.com/jvail/spl.js/tree/main/examples
 
 
-### Notebook (observablehq) examples:
-
-https://observablehq.com/@neocartocnrs/spatialite
-
-https://observablehq.com/collection/@abenrob/spatialite
+A few notebook / observablehq [examples](https://observablehq.com/search?query=%22spl.js%22&sort=relevance&direction=desc&useES=true).
 
 ## API
 
