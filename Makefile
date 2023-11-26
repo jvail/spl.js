@@ -3,14 +3,14 @@ BUILD_DIR = $(PWD)/src/build
 BC_DIR = $(BUILD_DIR)/bc
 PREFIX = --prefix=$(BC_DIR)
 
-SQLITE_VERSION = 3390400
-GEOS_VERSION = 3.9.0
-PROJ_VERSION = 9.1.0
+SQLITE_VERSION = 3440100
+GEOS_VERSION = 3.12.0
+PROJ_VERSION = 9.2.1
 RTTOPO_VERSION = 1.1.0
 
-ZLIB_VERSION = 1.2.13
+ZLIB_VERSION = 1.3
 XML2_VERSION = 2.9.12
-ICONV_VERSION = 1.16
+ICONV_VERSION = 1.17
 
 SPATIALITE_SRC = src/spatialite
 SQLITE_SRC = $(BUILD_DIR)/sqlite-autoconf-$(SQLITE_VERSION)
@@ -22,13 +22,23 @@ XML2_SRC = $(BUILD_DIR)/libxml2-$(XML2_VERSION)
 ICONV_SRC = $(BUILD_DIR)/libiconv-$(ICONV_VERSION)
 SQLEAN_EXT_SRC = src/sqlean/src
 
-DIST_FLAGS :=
-DIST_FLAGS += -s EXPORT_ES6=1
-DIST_FLAGS += -s USE_ES6_IMPORT_META=0
-DIST_FLAGS += -s MODULARIZE=1
-DIST_FLAGS += -s EXPORT_NAME="spl"
-DIST_FLAGS += -s ENVIRONMENT="node,worker"
-DIST_FLAGS += -s WASM_ASYNC_COMPILATION=0
+DIST_WORKER_FLAGS :=
+DIST_WORKER_FLAGS += -s EXPORT_ES6=1
+DIST_WORKER_FLAGS += -s USE_ES6_IMPORT_META=0
+DIST_WORKER_FLAGS += -s MODULARIZE=1
+DIST_WORKER_FLAGS += -s EXPORT_NAME="spl"
+DIST_WORKER_FLAGS += -s ENVIRONMENT="worker"
+DIST_WORKER_FLAGS += -s WASM_ASYNC_COMPILATION=0
+DIST_WORKER_FLAGS += --memory-init-file 0
+
+DIST_NODE_FLAGS :=
+DIST_NODE_FLAGS += -s EXPORT_ES6=1
+DIST_NODE_FLAGS += -s USE_ES6_IMPORT_META=1
+DIST_NODE_FLAGS += -s MODULARIZE=1
+DIST_NODE_FLAGS += -s EXPORT_NAME="spl"
+DIST_NODE_FLAGS += -s ENVIRONMENT="node"
+DIST_NODE_FLAGS += -s WASM_ASYNC_COMPILATION=0
+DIST_NODE_FLAGS += --memory-init-file 0
 
 ELD_FLAGS += -s INITIAL_MEMORY=64MB
 ELD_FLAGS += -s ALLOW_MEMORY_GROWTH=1
@@ -40,7 +50,7 @@ ELD_FLAGS += -lworkerfs.js
 
 EMX_FLAGS :=
 EMX_FLAGS += -s DISABLE_EXCEPTION_CATCHING=0
-EMX_FLAGS += --memory-init-file 0
+
 
 EXPORTED_FUNCTIONS = -s EXPORTED_FUNCTIONS=@$(PWD)/src/exported_functions.json
 EXPORTED_RUNTIME_METHODS = -s EXPORTED_RUNTIME_METHODS=@$(PWD)/src/exported_runtime_methods.json
@@ -83,7 +93,7 @@ zlib-src:
 
 iconv-conf: iconv-src
 	cd $(ICONV_SRC); \
-	emconfigure ./configure $(PREFIX) --disable-shared;
+	emconfigure ./configure $(PREFIX) --disable-shared --host=none-none-none;
 
 iconv: iconv-conf
 	cd $(ICONV_SRC); \
@@ -97,12 +107,12 @@ iconv-src:
 
 sqlite-src:
 	cd $(BUILD_DIR); \
-	wget -nc https://www.sqlite.org/2022/sqlite-autoconf-$(SQLITE_VERSION).tar.gz; \
+	wget -nc https://www.sqlite.org/2023/sqlite-autoconf-$(SQLITE_VERSION).tar.gz; \
 	tar -xf sqlite-autoconf-$(SQLITE_VERSION).tar.gz;
 
 sqlite-conf: sqlite-src
 	cd $(SQLITE_SRC); \
-	emconfigure ./configure $(PREFIX) \
+	emconfigure ./configure $(PREFIX)  --host=none-none-none \
 	--disable-tcl --disable-shared --disable-editline --disable-readline --disable-load-extension;
 
 sqlite: sqlite-conf
@@ -127,7 +137,7 @@ xml2-src:
 xml2-conf: xml2-src
 	cd $(XML2_SRC); \
 	./autogen.sh $(PREFIX) --without-python; \
-	emconfigure ./configure $(PREFIX) --without-python --disable-shared --with-zlib CPPFLAGS="-DDEBUG_HTTP" Z_LIBS="-L$(BC_DIR)/lib -lz" Z_CFLAGS="-I$(BC_DIR)/include";
+	emconfigure ./configure $(PREFIX)  --host=none-none-none --without-python --disable-shared --with-zlib CPPFLAGS="-DDEBUG_HTTP" Z_LIBS="-L$(BC_DIR)/lib -lz" Z_CFLAGS="-I$(BC_DIR)/include";
 
 xml2: xml2-conf
 	cd $(XML2_SRC); \
@@ -166,32 +176,13 @@ geos-src:
 	wget -nc http://download.osgeo.org/geos/geos-$(GEOS_VERSION).tar.bz2; \
 	tar -xf geos-$(GEOS_VERSION).tar.bz2; \
 
-# sed -i '/add_subdirectory(doc)/d' $(GEOS_SRC)/CMakeLists.txt;
-
-# geos: geos-src
-# 	cd $(GEOS_SRC) && mkdir -p build && cd build; \
-# 	emcmake cmake -DCMAKE_CXX_FLAGS="$(EMX_FLAGS)" \
-# 	-DDISABLE_GEOS_INLINE=ON -DBUILD_TESTING=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=OFF \
-# 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(BC_DIR) ..; \
-# 	emmake make -j4; \
-# 	emmake make install;
-
-geos-conf: geos-src
-	cd $(GEOS_SRC); \
-	emconfigure ./configure $(PREFIX) --disable-inline --disable-shared;
-
-# sed -i '/doc/d' $(GEOS_SRC)/Makefile;
-# sed -i '/tests/d' $(GEOS_SRC)/Makefile;
-# sed -i '/benchmarks/d' $(GEOS_SRC)/Makefile;
-# sed -i '/tools/d' $(GEOS_SRC)/Makefile;
-
-geos: geos-conf
-	cd $(GEOS_SRC); \
-	emmake make -j4 \
-	CPPFLAGS="$(EMX_FLAGS)"; \
+geos: geos-src
+	cd $(GEOS_SRC) && mkdir -p build && cd build; \
+	emcmake cmake -DCMAKE_CXX_FLAGS="$(EMX_FLAGS)" \
+	-DBUILD_TESTING=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=OFF \
+	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(BC_DIR) ..; \
+	emmake make -j4; \
 	emmake make install;
-
-# cd $(GEOS_SRC)/tools && emmake make install geos-config;
 
 geos-clean:
 	cd $(GEOS_SRC) && make clean;
@@ -204,7 +195,7 @@ rttopo-src:
 rttopo-conf: rttopo-src
 	cd $(RTTOPO_SRC); \
 	./autogen.sh; \
-	emconfigure ./configure $(PREFIX) --disable-shared --with-geosconfig="$(BC_DIR)/bin/geos-config";
+	emconfigure ./configure $(PREFIX) --host=none-none-none --disable-shared --with-geosconfig="$(BC_DIR)/bin/geos-config";
 
 rttopo: rttopo-conf
 	cd $(RTTOPO_SRC); \
@@ -213,9 +204,6 @@ rttopo: rttopo-conf
 
 rttopo-clean:
 	cd $(RTTOPO_SRC) && make clean;
-
-	# LIBXML2_LIBS="-L$(BC_DIR)/lib"
-	# LIBXML2_CFLAGS="-I$(BC_DIR)/include/libxml2"
 
 # remove some irrelevant tests that will fail (still some xls tests failing)
 spatialite-conf:
@@ -227,14 +215,13 @@ spatialite-conf:
 	-rm $(SPATIALITE_SRC)/test/sql_stmt_security_tests/importxls*;
 	cd $(SPATIALITE_SRC); \
 	aclocal && automake; \
-	emconfigure ./configure $(PREFIX) \
+	emconfigure ./configure $(PREFIX)  --host=none-none-none \
 	CFLAGS="$(EMX_FLAGS) -DENABLE_MINIZIP -UOMIT_PROJ -DPROJ_NEW -ULOADABLE_EXTENSION -I$(ZLIB_SRC)/contrib" \
 	CPPFLAGS="-I$(BC_DIR)/include" \
 	LDFLAGS="-L$(BC_DIR)/lib" \
+	PKG_CONFIG_LIBDIR="$(BC_DIR)/lib/pkgconfig" \
 	--with-geosconfig="$(BC_DIR)/bin/geos-config" \
-	--with-geosonlyreentrant \
 	--enable-rttopo \
-	--enable-geocallbacks \
 	--enable-geosadvanced \
 	--enable-geopackage \
 	--enable-gcp \
@@ -258,7 +245,7 @@ spatialite-clean:
 extensions:
 	emcc -v -I$(SQLITE_SRC) -DSQLITE_CORE $(EMX_FLAGS) $(ELD_FLAGS) -c $(SQLEAN_EXT_SRC)/sqlite3-stats.c -o $(BC_DIR)/ex.o;
 
-
+# requires node 21 to load fils without extension as mjs
 tests:
 	cd $(SPATIALITE_SRC)/test; \
 	echo " \
@@ -273,19 +260,29 @@ tests:
 	};" > pre.js; \
 	mkdir -p proj && cp -f $(BC_DIR)/share/proj/* proj; \
 	emmake make check -j4 LOG_COMPILE="node" \
-	LDFLAGS="$(ELD_FLAGS) -s ENVIRONMENT=node -s FORCE_FILESYSTEM=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s EXPORTED_FUNCTIONS="[_main]" -liconv -lminizip" \
+	LDFLAGS="$(ELD_FLAGS) -lgeos -s WASM_ASYNC_COMPILATION=0 -s ENVIRONMENT=node -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s FORCE_FILESYSTEM=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s EXPORTED_FUNCTIONS="[_main]" -liconv -lminizip" \
 	CFLAGS="$(EMX_FLAGS) -D_GNU_SOURCE --pre-js pre.js";
 
 
-.PHONY: spl
-spl: src/pre.js
-	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
+.PHONY: worker
+worker: src/pre.js
+	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_WORKER_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
 	-lz -lminizip -liconv -lsqlite3 -lgeos_c -lgeos -lrttopo -lproj -L$(BC_DIR)/lib \
-	-s ERROR_ON_UNDEFINED_SYMBOLS=0 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
 	-I$(SQLITE_SRC) \
 	-I$(SPATIALITE_SRC)/src/headers \
 	-I$(SPATIALITE_SRC)/src/headers/spatialite \
-	src/spl.c --pre-js src/pre.js -o $(BUILD_DIR)/js/spl.js --embed-file $(BC_DIR)/share/proj_min.db@/proj_min.db;
+	src/spl.c --pre-js src/pre.js -o $(BUILD_DIR)/js/em-worker.js --embed-file $(BC_DIR)/share/proj_min.db@/proj_min.db;
+
+.PHONY: node
+node: src/pre.js
+	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_NODE_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
+	-lz -lminizip -liconv -lsqlite3 -lgeos_c -lgeos -lrttopo -lproj -L$(BC_DIR)/lib \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
+	-I$(SQLITE_SRC) \
+	-I$(SPATIALITE_SRC)/src/headers \
+	-I$(SPATIALITE_SRC)/src/headers/spatialite \
+	src/spl.c --pre-js src/pre.js -o $(BUILD_DIR)/js/index.js --embed-file $(BC_DIR)/share/proj_min.db@/proj_min.db;
 
 clean:
 	rm -rf $(PWD)/dist/*;

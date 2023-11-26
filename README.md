@@ -4,8 +4,6 @@ SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and br
 
 [Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions and [a list](doc/extensions_functions.md) of available SQLite extension functions/modules.
 
-Comments, bug reports and suggestions are welcome! spl.js will remain beta at least until the release of SpatiaLite 5.1.0.
-
 ## Install
 
 ```bash
@@ -17,24 +15,6 @@ The library for browsers bundles both the WebWorker script and the wasm file (~ 
 A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
 If you like to use the full proj.db instead you need to mount it to `/proj/proj.db` and set the path with spatialite's `PROJ_SetDatabasePath`.
 
-[Apparently](https://github.com/jvail/spl.js/issues/1) typescript has no option to switch between `main` and `browser` entrypoints in `package.json`. For typescript & browser development you need to import spl.js (async version) as
-
-```ts
-import SPL from 'spl.js/dist/index'
-```
-
-or add this option to tsconfig.json
-
-```json
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "spl.js": ["node_modules/spl.js/dist/index"]
-    }
-  }
-}
-```
 
 ## Code Examples
 
@@ -45,7 +25,7 @@ import SPL from 'spl.js';
 const db = await SPL().then(spl => spl.db());
 
 console.assert(
-    await db.exec('SELECT spatialite_version()').get.first === '5.0.1'
+    await db.exec('SELECT spatialite_version()').get.first === '5.1.0'
 );
 
 db.exec('SELECT ? AS hello', ['spatialite']).get.objs
@@ -148,7 +128,7 @@ If you are looking for more examples there are many snippets in the `test/node.j
 
 ## SPL
 
-### `SPL`([`extensions`: [], `options`: {}]) -> `SPL`
+### `SPL`([`options`: {}, `extensions`: []]) -> `SPL`
 
 extensions: Browser only - see "Extensions API" section below.
 
@@ -247,8 +227,6 @@ With `sync` (browser only) all ArrayBuffers will be transfered without copying (
 
 ## Extensions API (Browser only)
 
-*Experimental since Firefox does currently not support dynamic imports in Workers.*
-
 Sometimes you want to run code inside the WebWorker. With this API you can supply additional functions to extend the `SPL` and `DB` APIs executed inside the WebWorker.
 
 Example: https://jvail.github.io/spl.js/examples/extensions.html
@@ -277,7 +255,7 @@ const extensions = [
     }
 ];
 
-const spl = await SPL(extensions);
+const spl = await SPL({}, extensions);
 const db = await spl.db()
     .read(`
         CREATE TABLE hello (world);
@@ -286,12 +264,12 @@ const db = await spl.db()
 
 console.assert(await db.tables().get.first === 'hello');
 console.assert(await db.master('view').get.first === 'hello_view');
-console.assert(await spl.spatialite_version() === '5.0.1');
+console.assert(await spl.spatialite_version() === '5.1.0');
 ```
 
 ## Building and Testing
 
-An activated, working emsdk environment (3.1.23) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
+An activated, working emsdk environment (3.1.49) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
 
 ```bash
 npm install && npm run build:all
@@ -304,6 +282,7 @@ npm run test:node && npm run test:firefox && npm run test:chrome
 ```
 
 Running (the relevant) SpatiaLite test cases - this will take quite some time ... ~ 45 minutes or more.
+Requires node >= v21 to run test cases without .mjs extension.
 
 ```bash
 npm run test:em

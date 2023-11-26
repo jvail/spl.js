@@ -1,9 +1,14 @@
-const taperun = require('tape-run');
-const browserify = require('browserify');
+import taperun from 'tape-run';
+import browserify from 'browserify';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import esmify from 'esmify';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 browserify(__dirname + '/browser.js', {
     plugin: [
-      [ require('esmify') ]
+      [ esmify ]
     ]
   })
   .bundle()

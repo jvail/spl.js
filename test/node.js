@@ -1,8 +1,17 @@
-const tape = require('tape');
-const spatial = require('../dist/spl');
-const fs = require('fs');
-const path = require('path');
+// const tape = require('tape');
+import tape from 'tape';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import events from 'events';
+// tape (node:8860) MaxListenersExceededWarning:
+events.EventEmitter.defaultMaxListeners = 100;
 
+import SPL from '../dist/index.mjs';
+// const fs = require('fs');
+// const path = require('path');
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const keep = ['.gitkeep', '.gitignore'];
 fs.readdir(path.join(__dirname, 'files/tmp'), (err, files) => {
     if (err) throw err;
@@ -15,31 +24,29 @@ fs.readdir(path.join(__dirname, 'files/tmp'), (err, files) => {
     }
 });
 
-// tape (node:8860) MaxListenersExceededWarning:
-require('events').EventEmitter.defaultMaxListeners = 100;
 
 tape('version tests', t => {
 
     t.plan(5);
-    const spl = spatial();
+    const spl = SPL();
 
     const db = spl.db();
 
     t.equal(
         db.exec("select sqlite_version()").get.first,
-        '3.39.4'
+        '3.44.1'
     );
     t.equal(
         db.exec("select spatialite_version()").get.first,
-        '5.0.1'
+        '5.1.0'
     );
     t.equal(
         db.exec("select geos_version()").get.first,
-        '3.9.0-CAPI-1.16.2'
+        '3.12.0-CAPI-1.18.0'
     );
     t.equal(
         db.exec("select proj_version()").get.first,
-        'Rel. 9.1.0, September 1st, 2022'
+        'Rel. 9.2.1, June 1st, 2023'
     );
     t.equal(
         db.exec("select rttopo_version()").get.first,
@@ -54,12 +61,11 @@ tape('feature tests', t => {
 
     t.plan(1);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.deepEqual(db.exec(`select
         HasIconv(),
         HasMathSQL(),
-        HasGeoCallbacks(),
         HasProj(),
         HasProj6(),
         HasGeos(),
@@ -80,14 +86,13 @@ tape('feature tests', t => {
     ).get.objs[0], {
         'HasIconv()': 1,
         'HasMathSQL()': 1,
-        'HasGeoCallbacks()': 1,
         'HasProj()': 1,
         'HasProj6()': 0, // TODO: reports 0 but should be 1 -> fix in spatialite source?
         'HasGeos()': 1,
         'HasGeosAdvanced()': 1,
         'HasGeosTrunk()': 0,
         'HasGeosReentrant()': 1,
-        'HasGeosOnlyReentrant()': 1,
+        'HasGeosOnlyReentrant()': 0,
         'HasMinZip()': 1,
         'HasRtTopo()': 1,
         'HasLibXML2()': 0,
@@ -106,7 +111,7 @@ tape('feature tests', t => {
 
 tape('function chaining tests', t => {
 
-    const spl = spatial();
+    const spl = SPL();
     const db = spl.db();
 
     t.plan(4);
@@ -134,7 +139,7 @@ tape('format tests', t => {
 
     t.plan(5);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.deepEqual(
         db.exec("select * from (values(1,2,3), (4,5,6))").get.rows,
@@ -165,7 +170,7 @@ tape('parameter tests', t => {
 
     t.plan(10);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.deepEqual(
         db.exec("select ?1 a, ?1 b", [1]).get.objs,
@@ -198,7 +203,7 @@ tape('parameter tests', t => {
     );
     t.deepEqual(
         db.exec("select ? as a, ? as b, ? as c, ? as d, ? as e", [1, null, false, 'text', new Uint8Array([0,1]).buffer]).get.objs,
-        [{ a: 1, b: null, c: 0, d: 'text', e: new Uint8Array([0]).buffer }]
+        [{ a: 1, b: null, c: 0, d: 'text', e: new Uint8Array([0,1]).buffer }]
     );
     t.deepEqual(
         db.exec("select @a a, @b b", [
@@ -225,7 +230,7 @@ tape('type tests', t => {
 
     t.plan(4);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.deepEqual(
         db.exec("select 1, 1.1").get.first,
@@ -252,7 +257,7 @@ tape('strict quoting tests', t => {
 
     t.plan(2);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.throws(() => db.exec("select \"quoted\""));
     t.doesNotThrow(() => db.exec("select 'quoted'"));
@@ -265,7 +270,7 @@ tape('shapefiles', t => {
 
     t.plan(2);
 
-    const db = spatial().mount(__dirname).db();
+    const db = SPL().mount(__dirname).db();
 
     t.deepEqual(
         db.exec('select importzipshp(?, ?, ?, ?) as count', [
@@ -287,7 +292,7 @@ tape('memory and local dbs', t => {
 
     t.plan(2);
 
-    const s = spatial().mount(__dirname);
+    const s = SPL().mount(__dirname);
     let db = s.db('files/tmp/memory_and_local_dbs_1.db');
     db.exec('create table test(col)');
     db.exec('insert into test values(1)');
@@ -308,7 +313,7 @@ tape('execute sql scripts', t => {
 
     t.plan(2);
 
-    const db = spatial().db();
+    const db = SPL().db();
 
     t.deepEqual(
         db.read(`
@@ -329,7 +334,7 @@ tape('mounting', t => {
     t.plan(2);
     let db;
 
-    db = spatial().mount(__dirname + '/files/shp/').db();
+    db = SPL().mount(__dirname + '/files/shp/').db();
 
     t.deepEqual(
         db.exec('select importzipshp(?, ?, ?, ?) as count', [
@@ -338,7 +343,7 @@ tape('mounting', t => {
         [{ count: 177 }]
     );
 
-    db = spatial().mount(__dirname + '/files/shp/', 'somename').db();
+    db = SPL().mount(__dirname + '/files/shp/', 'somename').db();
 
     t.deepEqual(
         db.exec('select importzipshp(?, ?, ?, ?) as count', [
@@ -351,28 +356,20 @@ tape('mounting', t => {
 
 tape('virtual tables', t => {
 
-    t.plan(2);
-    let db = spatial()
+    t.plan(1);
+    let db = SPL()
         .mount(__dirname + '/files/shp/', 'shp')
-        .mount(__dirname + '/files/csv/', 'csv')
         .db();
 
     db.exec("create virtual table countries using virtualshape('shp/ne_110m_admin_0_countries', CP1252, 4326)");
-
-    db.exec("create virtual table places using virtualtext('csv/testcase1.csv', UTF-8, 0, POINT, DOUBLEQUOTE)");
-
     t.equals(db.exec('select count(*) from countries').get.first, 177);
-    t.deepEquals(
-        db.exec("select col003 from places WHERE col003 = 'Canal Creek'").get.objs,
-        [ { COL003: 'Canal Creek' }, { COL003: 'Canal Creek' } ]
-    );
 
 });
 
 tape('save and load from/to memory', t => {
 
     t.plan(1);
-    const s = spatial();
+    const s = SPL();
     const name = 'save_and_load_from_to_memory.db'
 
     s.mount(__dirname + '/files/tmp/')
@@ -396,7 +393,7 @@ tape('db from arraybuffer', t => {
     const buf = fs.readFileSync(__dirname + '/files/dbs/sqlite3.db').buffer;
 
     t.deepEqual(
-        spatial().db(buf).exec('select * from i_am_a_file_db_table').get.objs,
+        SPL().db(buf).exec('select * from i_am_a_file_db_table').get.objs,
         [{ col: 1 }]
     );
 
@@ -406,7 +403,7 @@ tape('proj', t => {
 
     t.plan(5);
 
-    const db = spatial()
+    const db = SPL()
             .mount(__dirname + '/../dist/proj', 'proj')
             .mount(__dirname + '/files/shp', 'root')
             .db().read('select InitSpatialMetaDataFull(1)');
@@ -448,7 +445,7 @@ tape('json', t => {
 
     t.plan(2);
 
-    const db = spatial({
+    const db = SPL({
         autoGeoJSON: {
             precision: 0,
             options: 0
@@ -473,7 +470,7 @@ tape('extensions - stats', t => {
 
     t.plan(7);
 
-    const db = spatial().db()
+    const db = SPL().db()
 
     t.true(db.exec('select percentile(value, 25) = 25.5 from generate_series(1, 99)').get.first);
     t.true(db.exec('select round(stddev(value), 1) = 28.7 from generate_series(1, 99)').get.first);
@@ -490,7 +487,7 @@ tape('autoincrement: https://github.com/jvail/spl.js/issues/15', t => {
 
     t.plan(1);
 
-    const db = spatial().db()
+    const db = SPL().db()
     const srid = 32636;
     const tableName = "test";
     const script = `

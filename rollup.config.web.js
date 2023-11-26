@@ -1,35 +1,28 @@
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
-import json from '@rollup/plugin-json';
 import copy from 'rollup-plugin-copy';
-
-const ts = typescript({
-    useTsconfigDeclarationDir: true
-});
+import json from '@rollup/plugin-json';
 
 const cp = copy({
     targets: [
-        { src: 'src/spl-web.d.ts', dest: 'dist', rename: 'index.d.ts' }
+        { src: 'src/index.js', dest: 'dist' },
     ]
 });
 
 export default args => ({
-    input: 'src/spl-web.ts',
+    input: 'src/spl-web.js',
     output: [
-        { file: 'dist/index.js', format: 'es', preferConst: true, exports: 'auto'}
+        { file: 'dist/spl-web.js', format: 'es', exports: 'auto'}
     ],
     plugins: args.configDebug ? [
         nodeResolve(),
         json(),
-        ts,
         commonjs(),
         cp
     ] : [
         nodeResolve(),
         json(),
-        ts,
         commonjs(),
         terser(),
         cp

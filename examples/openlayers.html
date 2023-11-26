@@ -41,7 +41,9 @@
             (async () => {
                 try {
 
-                    const spl = await SPL();
+                    let spl_ = SPL();
+
+                    const spl = await spl_;
 
                     // const london_boroughs = await fetch('https://data.london.gov.uk/download/london_boroughs/9502cdec-5df0-46e3-8aa1-2b5c5233a31f/london_boroughs.gpkg')
                     //     .then(response => response.blob());

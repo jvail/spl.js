@@ -20,7 +20,7 @@
             import { d3, geoAitoff, topojson } from './lib/lib.js';
             import SPL from '../dist/index.js';
 
-            const extention = {
+            const extension = {
                 extends: 'db',
                 fns: {
                     'toTopoJSON': async (db, table, column='geometry') => {
@@ -28,14 +28,11 @@
                             await import('https://unpkg.com/topojson-server@3');
                         }
                         return topojson.topology(db.exec(`SELECT ${column} FROM ${table}`).get.flat);
-                    },
-                    'timeout': async (_, delay) => {
-                        return new Promise(resolve => setTimeout(resolve, delay));
                     }
                 }
             };
 
-            const spl = await SPL([extention]);
+            const spl = await SPL({}, [extension]);
             const db = await spl.mount('data', [{
                     name: 'world.geojson',
                     data: await fetch('data/world.json').then(res => res.arrayBuffer())

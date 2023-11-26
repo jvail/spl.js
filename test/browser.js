@@ -1,89 +1,6 @@
-const tape = require('tape');
-const SPL = require('../dist/index').default;
+import tape from 'tape';
+import SPL from '../dist/index.js';
 
-
-tape('version tests', async t => {
-
-    const spl = await SPL();
-    const db = await spl.db();
-
-    t.plan(5);
-
-    t.deepEqual(
-        await db.exec("select sqlite_version()").get.objs,
-        [{ 'sqlite_version()': '3.39.4' }]
-    );
-    t.deepEqual(
-        await db.exec("select spatialite_version()").get.objs,
-        [{ 'spatialite_version()': '5.0.1' }]
-    );
-    t.deepEqual(
-        await db.exec("select geos_version()").get.objs,
-        [{ 'geos_version()': '3.9.0-CAPI-1.16.2' }]
-    );
-    t.deepEqual(
-        await db.exec("select proj_version()").get.objs,
-        [{ 'proj_version()': 'Rel. 9.1.0, September 1st, 2022' }]
-    );
-    t.deepEqual(
-        await db.exec("select rttopo_version()").get.objs,
-        [{ 'rttopo_version()': '1.1.0' }]
-    );
-
-});
-
-tape('feature tests', async t => {
-
-    t.plan(1);
-
-    const spl = await SPL();
-    const db = await spl.db();
-
-    t.deepEqual(await db.exec(`select
-        HasIconv(),
-        HasMathSQL(),
-        HasGeoCallbacks(),
-        HasProj(),
-        HasProj6(),
-        HasGeos(),
-        HasGeosAdvanced(),
-        HasGeosTrunk(),
-        HasGeosReentrant(),
-        HasGeosOnlyReentrant(),
-        HasMinZip(),
-        HasRtTopo(),
-        HasLibXML2(),
-        HasEpsg(),
-        HasFreeXL(),
-        HasGeoPackage(),
-        HasGCP(),
-        HasTopology(),
-        HasKNN(),
-        HasRouting()`
-    ).get.objs, [ {
-        'HasIconv()': 1,
-        'HasMathSQL()': 1,
-        'HasGeoCallbacks()': 1,
-        'HasProj()': 1,
-        'HasProj6()': 0, // TODO: reports 0 but should be 1?
-        'HasGeos()': 1,
-        'HasGeosAdvanced()': 1,
-        'HasGeosTrunk()': 0,
-        'HasGeosReentrant()': 1,
-        'HasGeosOnlyReentrant()': 1,
-        'HasMinZip()': 1,
-        'HasRtTopo()': 1,
-        'HasLibXML2()': 0,
-        'HasEpsg()': 1,
-        'HasFreeXL()': 0,
-        'HasGeoPackage()': 1,
-        'HasGCP()': 1,
-        'HasTopology()': 1,
-        'HasKNN()': 1,
-        'HasRouting()': 1
-    }]);
-
-});
 
 tape('function chaining tests', async t => {
 
@@ -268,7 +185,7 @@ tape('extensions', async t => {
         }
     ];
 
-    const spl = await SPL(extensions);
+    const spl = await SPL({}, extensions);
 
     const db = spl.db()
         .read(`
@@ -288,7 +205,7 @@ tape('extensions', async t => {
     );
     t.equals(
         await spl.spatialite_version(),
-        '5.0.1'
+        '5.1.0'
     );
     t.equals(
         await db.async_fn(10),

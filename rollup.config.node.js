@@ -1,37 +1,42 @@
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
 import copy from 'rollup-plugin-copy';
 import json from '@rollup/plugin-json';
+import replace from '@rollup/plugin-replace';
 
-const ts = typescript({
-    useTsconfigDeclarationDir: true
-});
 
 const cp = copy({
     targets: [
-        { src: 'src/build/js/spl.wasm', dest: 'dist' },
+        { src: 'src/build/js/index.wasm', dest: 'dist' },
         { src: 'src/build/bc/share/proj', dest: 'dist' },
-        { src: 'src/spl.d.ts', dest: 'dist' }
+        { src: 'src/index.mjs', dest: 'dist' },
     ]
 });
 
 export default args => ({
-    input: 'src/spl-node.ts',
+    input: 'src/spl-node.mjs',
     output: [
-        { file: 'dist/spl.js', format: 'cjs', preferConst: true, exports: 'auto'}
+        { file: 'dist/spl-node.mjs', format: 'es', exports: 'auto'}
     ],
     plugins: args.configDebug ? [
+        replace({
+            preventAssignment: true,
+            delimiters: ["'", "'"],
+            values: { './build/js/em-worker.js': JSON.stringify('./build/js/index.js') }
+        }),
         nodeResolve(),
         json(),
-        ts,
         commonjs(),
         cp
     ] : [
+        replace({
+            preventAssignment: true,
+            delimiters: ["'", "'"],
+            values: { './build/js/em-worker.js': JSON.stringify('./build/js/index.js') }
+        }),
         nodeResolve(),
         json(),
-        ts,
         commonjs(),
         terser(),
         cp

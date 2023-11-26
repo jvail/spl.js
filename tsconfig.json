@@ -1,9 +1,0 @@
-{
-    "compilerOptions": {
-        "lib": ["esnext", "webworker", "dom"],
-        "target": "esnext",
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "declaration": true
-    }
-}
