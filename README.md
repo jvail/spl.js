@@ -265,7 +265,7 @@ console.assert(await spl.spatialite_version() === '5.1.0');
 
 ## Building and Testing
 
-An activated, working emsdk environment (3.1.49) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
+An activated, working emsdk environment (3.1.50) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
 
 ```bash
 npm install && npm run build:all

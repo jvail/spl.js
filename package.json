@@ -1,6 +1,6 @@
 {
   "name": "spl.js",
-  "version": "0.1.0-rc.0",
+  "version": "0.1.0",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "main": "dist/index.js",
   "type": "module",
@@ -42,12 +42,12 @@
     "@rollup/plugin-node-resolve": "^15.2.1",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.3",
-    "rollup-plugin-copy": "^3.4.0",
     "browserify": "^17.0.0",
     "esmify": "^2.1.1",
     "rollup": "^3.28.1",
+    "rollup-plugin-copy": "^3.4.0",
     "tape": "^5.2.2",
-    "tape-run": "^9.0.0"
+    "tape-run": "^11.0.0"
   },
   "dependencies": {
     "pako": "^2.1.0"

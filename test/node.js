@@ -34,7 +34,7 @@ tape('version tests', t => {
 
     t.equal(
         db.exec("select sqlite_version()").get.first,
-        '3.44.1'
+        '3.44.2'
     );
     t.equal(
         db.exec("select spatialite_version()").get.first,
@@ -42,11 +42,11 @@ tape('version tests', t => {
     );
     t.equal(
         db.exec("select geos_version()").get.first,
-        '3.12.0-CAPI-1.18.0'
+        '3.12.1-CAPI-1.18.1'
     );
     t.equal(
         db.exec("select proj_version()").get.first,
-        'Rel. 9.2.1, June 1st, 2023'
+        'Rel. 9.3.1, December 1st, 2023'
     );
     t.equal(
         db.exec("select rttopo_version()").get.first,

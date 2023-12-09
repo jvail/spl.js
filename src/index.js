@@ -1,11 +1,18 @@
 /**
+ * @typedef {Object} ResultSync
+ * @property {any} first
+ * @property {any[]} flat
+ * @property {any[]} rows
+ * @property {string[]} cols
+ * @property {{}[]} objs
+ *
  * @typedef {Object} Result
  * @property {Promise<any>} first
  * @property {Promise<any[]>} flat
  * @property {Promise<any[]>} rows
  * @property {Promise<string[]>} cols
  * @property {Promise<{}[]>} objs
- * @property {Promise<Result>} sync
+ * @property {Promise<ResultSync>} sync
  * @property {Promise<void>} free
  *
  * @typedef {Object} MountOptions
