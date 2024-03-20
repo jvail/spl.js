@@ -43,7 +43,6 @@ const spl = function (wasmBinary=null, options = {}) {
         getValue,
         setValue,
         stackAlloc,
-        HEAP8,
         stringToUTF8,
         UTF8ToString,
         lengthBytesUTF8,
@@ -424,7 +423,7 @@ const spl = function (wasmBinary=null, options = {}) {
                                 if (splOptions.autoGeoJSON && isGaia(ptr, size)) {
                                     val = toGeoJSON(ptr, size, splOptions.autoGeoJSON.precision, splOptions.autoGeoJSON.options);
                                 } else {
-                                    val = HEAP8.buffer.slice(ptr, ptr + size);
+                                    val = _emspl.HEAP8.buffer.slice(ptr, ptr + size);
                                 }
                                 break;
                             default:
