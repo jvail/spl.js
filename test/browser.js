@@ -213,3 +213,47 @@ tape('extensions', async t => {
     );
 
 });
+
+tape('json', async t => {
+
+    t.plan(3);
+
+    let db = (await SPL({
+        autoGeoJSON: {
+            precision: 0,
+            options: 0
+        }
+    })).db();
+
+    t.deepEqual(
+        await db.exec('select json(@js)', { '@js': { hello: 'json' }}).get.first,
+        { hello: 'json' }
+    );
+
+    t.deepEqual(
+        await db.exec('select geomfromtext(?)', [ 'POINT(11.1 11.1)' ]).get.first,
+        { type: 'Point', 'coordinates': [11, 11] }
+    )
+
+    db.close();
+
+    // https://github.com/jvail/spl.js/issues/33
+    db = (await SPL({
+        autoGeoJSON: {
+            precision: 8,
+            options: 0
+        }
+    })).db();
+
+    const [a, b] = await fetch('files/json/precision.json').then(res => res.json());
+
+    t.doesNotThrow(
+        async () => await db.exec(
+            'SELECT CastToMulti(ST_Union(GeomFromGeoJSON(@a), GeomFromGeoJSON(@b)))',
+            { '@a': a, '@b': b }
+        ).get.first
+    );
+
+    db.close();
+
+});
