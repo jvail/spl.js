@@ -216,7 +216,7 @@ tape('extensions', async t => {
 
 tape('json', async t => {
 
-    t.plan(3);
+    t.plan(4);
 
     let db = (await SPL({
         autoGeoJSON: {
@@ -252,6 +252,12 @@ tape('json', async t => {
             'SELECT CastToMulti(ST_Union(GeomFromGeoJSON(@a), GeomFromGeoJSON(@b)))',
             { '@a': a, '@b': b }
         ).get.first
+    );
+
+    t.doesNotThrow(
+        async () => await db.exec(
+                `SELECT CastToMulti(ST_Union(GeomFromGeoJSON('${JSON.stringify(a)}'), GeomFromGeoJSON('${JSON.stringify(b)}'))) as a`
+            ).get.first
     );
 
     db.close();

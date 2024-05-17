@@ -443,7 +443,7 @@ tape('proj', t => {
 
 tape('json', t => {
 
-    t.plan(3);
+    t.plan(4);
 
     let db = SPL({
         autoGeoJSON: {
@@ -467,7 +467,7 @@ tape('json', t => {
     // https://github.com/jvail/spl.js/issues/33
     db = SPL({
         autoGeoJSON: {
-            precision: 8,
+            precision: 15,
             options: 0
         }
     }).db();
@@ -477,6 +477,12 @@ tape('json', t => {
         () => db.exec(
             'SELECT CastToMulti(ST_Union(GeomFromGeoJSON(@a), GeomFromGeoJSON(@b)))',
             { '@a': a, '@b': b }
+        ).get.first
+    );
+
+    t.doesNotThrow(
+        () => db.exec(
+            `SELECT CastToMulti(ST_Union(GeomFromGeoJSON('${JSON.stringify(a)}'), GeomFromGeoJSON('${JSON.stringify(b)}'))) as a`
         ).get.first
     );
 
