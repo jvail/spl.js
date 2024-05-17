@@ -65,7 +65,7 @@ const spl = function (wasmBinary=null, options = {}) {
 
     const sqlite3_open = _emspl.cwrap('sqlite3_open', 'number', ['string', 'number']),
         sqlite3_close_v2 = _emspl.cwrap('sqlite3_close_v2', 'number', ['number']),
-        sqlite3_prepare_v2 = _emspl.cwrap('sqlite3_prepare_v2', 'number', ['number', 'string', 'number', 'number', 'number']),
+        sqlite3_prepare_v2 = _emspl.cwrap('sqlite3_prepare_v2', 'number', ['number', 'number', 'number', 'number', 'number']),
         sqlite3_bind_text = _emspl.cwrap('sqlite3_bind_text', 'number', ['number', 'number', 'number', 'number', 'number']),
         sqlite3_bind_blob = _emspl.cwrap('sqlite3_bind_blob', 'number', ['number', 'number', 'number', 'number', 'number']),
         sqlite3_bind_double = _emspl.cwrap('sqlite3_bind_double', 'number', ['number', 'number', 'number']),
@@ -271,8 +271,11 @@ const spl = function (wasmBinary=null, options = {}) {
             let ret, ptrs = [];
             const rows = [];
             setValue(tmpPtr, 0, 'i32');
+            const sqlSize = lengthBytesUTF8(sql) + 1
+            const sqlPtr = _malloc(sqlSize);
+            stringToUTF8(sql, sqlPtr, sqlSize);
 
-            ret = sqlite3_prepare_v2(dbHandle, sql, -1, tmpPtr, 0);
+            ret = sqlite3_prepare_v2(dbHandle, sqlPtr, -1, tmpPtr, 0);
             if (ret !== SQLITE.OK) {
                 throw new Error(sqlite3_errmsg(dbHandle));
             }
@@ -448,6 +451,7 @@ const spl = function (wasmBinary=null, options = {}) {
 
             // const readonly = sqlite3_stmt_readonly(stmt);
             sqlite3_finalize(stmt);
+            _free(sqlPtr);
 
             _result = result(columns, rows);
 
