@@ -146,6 +146,8 @@ options:
 
 ### `.mount`(`path`: string, options) -> `SPL`
 
+All mounted paths are read only.
+
 options is an array of objects:
 
 { `name`: string, `data`: ArrayBuffer | Blob | File | FileList | string };
@@ -161,12 +163,35 @@ You can use SQLite URIs (https://sqlite.org/c3ref/open.html#urifilenameexamples)
 
 If no mountpoint is provided the local `path` will be mouted as root e.g. `a_dir/some_dir/some_file` is available as `some_dir/some_file` if mounted as `spl.mount(path: 'a_dir')`.
 
-
 ### `.unmount`(`path`: string) -> `SPL`
+
+### `.export`(`paths`: ...string [, options]) -> Promise<ArrayBuffer | ArrayBuffer[] | string | string[]>
+
+Returns files previously saved in the root path of the worker filesystem if awaited(**browser only**).
+
+options:
+- `encoding`: 'utf8' or 'binary' (default)
+- `unlink`: boolean, keep or remove (default) the file afterwards
+
+Example:
+
+```js
+await db.read(`
+    SELECT ExportGeoJSON2('my_table', 'geometry', 'my.geojson');
+    SELECT ExportSHP('my_table', 'geometry', 'shapefile', 'UTF-8');
+`);
+const geojson = await spl.export('my.geojson', { encoding: 'utf8' });
+const shp = await spl.export(
+    'shapefile.shp',
+    'shapefile.shx',
+    'shapefile.dbf',
+    'shapefile.prj'
+);
+```
 
 ### `.terminate`()
 
-Terminates the WebWorker (only Browser).
+Terminates the WebWorker (**browser only**).
 
 ## DB
 
@@ -204,7 +229,7 @@ Import a database into the current database. This is using SQLite's backup API.
 ### `.save`([`dest`: string]) -> `DB` | ArrayBuffer
 
 Export the current database. This is using SQLite's backup API.
-If `dest` [**Node Only**] is undefined or empty an ArrayBuffer is returned.
+If `dest` (**node only**) is undefined or empty an ArrayBuffer is returned.
 
 ### `.close`() -> `SPL`
 

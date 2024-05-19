@@ -25,51 +25,52 @@ const exec = (id, fn, args = []) => {
             res = spl.version();
             break;
         case 'db':
-            // @ts-ignore
             res = dbs[id] = spl.db(...args);
             break;
         case 'db.attach':
-            // @ts-ignore
             res = dbs[id].attach(...args);
             break;
         case 'db.detach':
-            // @ts-ignore
             res = dbs[id].detach(...args);
             break;
         case 'db.exec':
-            // @ts-ignore
             res = dbs[id].exec(...args);
             break;
-        // case 'db.exec2':
-        //     // @ts-ignore
-        //     res = dbs[id].exec2(...args);
-        //     if (!(res instanceof spl.db)) {
-        //         res = { __res: Math.round(Number.MAX_SAFE_INTEGER * Math.random()) };
-        //         results[res.__res] = dbs[id].exec2(...args);
-        //     }
-        //     break;
         case 'db.close':
             res = dbs[id].close();
             break;
         case 'db.read':
-            // @ts-ignore
             res = dbs[id].read(...args);
             break;
         case 'db.save':
-            // @ts-ignore
             res = dbs[id].save(...args);
             break;
         case 'db.load':
-            // @ts-ignore
             res = dbs[id].load(...args);
             break;
         case 'mount':
-            // @ts-ignore
             res = spl.mount(...args);
             break;
         case 'unmount':
-            // @ts-ignore
             res = spl.unmount(...args);
+            break;
+        case 'export':
+            let options = { encoding: 'binary', unlink: true };
+            let paths = args;
+            if (typeof(args[args.length - 1]) === 'object') {
+                options = {
+                    ...options,
+                    ...args[args.length - 1]
+                };
+                paths = args.slice(0, args.length - 1);
+            }
+            res = paths.map(path => {
+                const file = spl._FS.readFile(path, options);
+                if (options.unlink) spl._FS.unlink(path);
+                if (options.encoding === 'binary') return file.buffer;
+                return file;
+            });
+            res = res.length === 1 ? res[0] : res;
             break;
         case 'res.first':
             res = dbs[id].get.first;

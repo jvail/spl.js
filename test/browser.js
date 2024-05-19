@@ -263,3 +263,39 @@ tape('json', async t => {
     db.close();
 
 });
+
+
+tape('export', async t => {
+
+    const world = await fetch('files/json/world.geojson').then(res => res.text())
+    const spl = await SPL();
+    const db = await spl.mount('data', [{
+        name: 'world.geojson',
+        data: await fetch('files/json/world.geojson').then(res => res.arrayBuffer())
+    }]).db().read(`
+        SELECT InitSpatialMetaDataFull(1);
+        SELECT ImportGeoJSON('/data/world.geojson', 'world');
+        SELECT ExportGeoJSON2('world', 'geometry', 'geojson');
+        SELECT ExportSHP('world', 'geometry', 'shapefile', 'UTF-8');
+    `);
+
+    t.plan(2);
+
+    const geojson = await spl.export(
+        'geojson',
+        { encoding: 'utf8'}
+    );
+
+    const shp = await spl.export(
+        'shapefile.shp',
+        'shapefile.shx',
+        'shapefile.dbf',
+        'shapefile.prj'
+    );
+
+    t.equals(JSON.parse(geojson).type, "FeatureCollection");
+    t.equals(shp.reduce((a, b) => a + (b instanceof ArrayBuffer), 0), 4);
+
+    db.close();
+
+});

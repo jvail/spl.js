@@ -56,6 +56,10 @@ const spl = function (wasmBinary=null, options = {}) {
         ENVIRONMENT_IS_NODE
     } = _emspl;
 
+    if (!ENVIRONMENT_IS_NODE) {
+        this._FS = FS;
+    }
+
     const spatialite_alloc_connection = _emspl.cwrap('spatialite_alloc_connection', 'number', ['number']),
         spatialite_init_ex = _emspl.cwrap('spatialite_init_ex', 'number', ['number', 'number']),
         spatialite_cleanup_ex = _emspl.cwrap('spatialite_cleanup_ex', 'number', ['number']),

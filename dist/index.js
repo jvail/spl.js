@@ -41,10 +41,20 @@
  * @property {() => Spl} close
  * @property {Result} get
  *
+ * @typedef {Object} ExportOptions
+ * @property {"utf8" | "binary"} [encoding="binary"]
+ * @property {boolean} [unlink=True] Delete or keep after export
+ *
+ * @callback ExportFunction
+ * @param {...string} paths
+ * @param {ExportOptions} [options]
+ * @returns {Promise<ArrayBuffer | ArrayBuffer[] | string | string[]>}
+ *
  * @typedef {Object} Spl
  * @property {(path?: string | ArrayBuffer) => Db} db
  * @property {(path: string, options: MountOptions[]) => Spl} mount
  * @property {(string) => Spl} unmount
+ * @property {ExportFunction} export
  * @property {() => Promise<any>} version
  *
  */

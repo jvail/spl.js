@@ -301,6 +301,14 @@ const spl = function (wkr, exs=[]) {
         return thenSpl();
     };
 
+    this.export = (...args) => {
+        stackSpl.push({
+            fn: 'export',
+            args: args
+        });
+        return thenSpl();
+    };
+
     this.terminate = () => wkr.terminate();
 
     exs.filter(ex => ex.extends === 'spl').forEach(ex => {
