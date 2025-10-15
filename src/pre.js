@@ -90,6 +90,7 @@ class XHR {
         do {
             retry += 1;
             this.xhr.open('HEAD', this.url, false);
+            this.xhr.setRequestHeader('Accept-Encoding', 'identity')
             this.xhr.send(null);
         } while (retry < 3 && this.xhr.status != 200)
         this._size = size;
@@ -120,6 +121,7 @@ class XHR {
         do {
             retry += 1;
             this.xhr.open('GET', this.url, false);
+            this.xhr.setRequestHeader('Accept-Encoding', 'identity')
             this.xhr.setRequestHeader('Range', `bytes=${pos}-${Math.min(this._size - 1, pos + len - 1)}`);
             this.xhr.send(null);
         } while (retry < 3 && this.xhr.status != 206);
