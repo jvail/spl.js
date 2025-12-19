@@ -82,16 +82,30 @@ class XHR {
     }
 
     size() {
+        // Use a Range request to get the actual file size from Content-Range header.
+        // This avoids issues with Content-Length returning compressed size on some CDNs.
         let retry = 0;
         let size = -1;
         this.xhr.onload = () => {
-            size = +this.xhr.getResponseHeader('Content-Length');
+            const range = this.xhr.getResponseHeader('Content-Range');
+            if (range) {
+                // Content-Range: bytes 0-99/1234567 -> extract total size after '/'
+                const match = range.match(/\/(\d+)/);
+                if (match) {
+                    size = +match[1];
+                }
+            }
+            if (size < 0) {
+                // Fallback to Content-Length if Content-Range is not available
+                size = +this.xhr.getResponseHeader('Content-Length');
+            }
         };
         do {
             retry += 1;
-            this.xhr.open('HEAD', this.url, false);
+            this.xhr.open('GET', this.url, false);
+            this.xhr.setRequestHeader('Range', 'bytes=0-0');
             this.xhr.send(null);
-        } while (retry < 3 && this.xhr.status != 200)
+        } while (retry < 3 && this.xhr.status != 206 && this.xhr.status != 200);
         this._size = size;
         return size;
     }
