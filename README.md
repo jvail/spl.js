@@ -99,6 +99,8 @@ console.assert(
 
 Be patient - spl.js, data and other packages need to be fetched.
 
+**Note**: These GitHub Pages examples only work in Chrome/Safari due to a [known Firefox bug](https://github.com/bdon/ghpages-firefox-range-bug) where range requests return compressed file sizes.
+
 Create a topology from a GeoPackage layer and simplify polygon boundaries:
 
 https://jvail.github.io/spl.js/examples/topology.html
