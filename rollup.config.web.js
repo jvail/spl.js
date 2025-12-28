@@ -7,6 +7,7 @@ import json from '@rollup/plugin-json';
 const cp = copy({
     targets: [
         { src: 'src/index.js', dest: 'dist' },
+        { src: 'src/typedefs.js', dest: 'dist' },
     ]
 });
 

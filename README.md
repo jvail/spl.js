@@ -2,6 +2,16 @@
 
 SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and browser (async API).
 
+## Bundled Library Versions
+
+| Library | Version |
+|---------|---------|
+| SpatiaLite | 5.1.1-rc0 |
+| SQLite | 3.51.1 |
+| GEOS | 3.14.1 |
+| PROJ | 9.7.1 |
+| librttopo | 1.1.0 |
+
 [Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions and [a list](doc/extensions_functions.md) of available SQLite extension functions/modules.
 
 ## Install
@@ -10,10 +20,10 @@ SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and br
 npm install spl.js
 ```
 
-The library for browsers bundles both the WebWorker script and the wasm file (~ 5MB).
+The library for browsers bundles both the WebWorker script and the wasm file (~4.5MB, ~3.4MB gzipped).
 
 A minimal proj.db including EPSG codes for lon/lat to "Web Mercator" and UTM is embeded. Other PROJ files and the complete proj.db are available from the `dist/proj` folder.
-If you like to use the full proj.db instead you need to mount it to `/proj/proj.db` and set the path with spatialite's `PROJ_SetDatabasePath`.
+If you like to use the full proj.db instead you need to mount it (e.g. `spl.fs.mount('proj', [...])`) and set the path with spatialite's `PROJ_SetDatabasePath('/proj/proj.db')`.
 
 
 ## Code Examples
@@ -25,7 +35,7 @@ import SPL from 'spl.js';
 const db = await SPL().then(spl => spl.db());
 
 console.assert(
-    await db.exec('SELECT spatialite_version()').get.first === '5.1.0'
+    await db.exec('SELECT spatialite_version()').get.first === '5.1.1-rc0'
 );
 
 db.exec('SELECT ? AS hello', ['spatialite']).get.objs
@@ -82,7 +92,7 @@ const lights = await fetch('examples/lights.zip')
     .then(response => response.blob());
 
 const db = await spl
-    .mount('data', [
+    .fs.mount('data', [
         { name: 'lights.zip', data: lights }
     ])
     .db()
@@ -120,13 +130,13 @@ A few notebook / observablehq [examples](https://observablehq.com/search?query=%
 
 ## API
 
-The API for node and browser is identical (almost - file handling is obviously different. See e.g. `mount` function).
+The API for node and browser is identical (almost - file handling is obviously different. See the `fs` namespace).
 
 If you are looking for more examples there are many snippets in the `test/node.js` and `test/browser.js` files.
 
 ## SPL
 
-### `SPL`([`options`: {}, `extensions`: []]) -> `SPL`
+### `SPL`([`options`: {}, `extensions`: []]) -> `Promise<SPL>`
 
 extensions: Browser only - see "Extensions API" section below.
 
@@ -144,9 +154,21 @@ options:
 
 ### `.db`([`path`: string | ArrayBuffer]) -> `DB`
 
+### `.version`() -> `VersionInfo`
+
+Returns an object with version strings for all bundled libraries: `spatialite`, `sqlite`, `geos`, `proj`, `rttopo`, `spl.js`.
+
+### `.terminate`()
+
+Terminates the WebWorker (only Browser).
+
+## FS (Filesystem)
+
+All filesystem operations are under the `fs` namespace.
+
 **Browser**
 
-### `.mount`(`path`: string, options) -> `SPL`
+### `.fs.mount`(`path`: string, options) -> `SPL`
 
 options is an array of objects:
 
@@ -157,18 +179,33 @@ If `data` is a string it must be a valid URL where HEAD and Range requests are a
 
 You can use SQLite URIs (https://sqlite.org/c3ref/open.html#urifilenameexamples). For mounted URLs you should use `file:sqlite.db?immutable=1`.
 
+### `.fs.file`(`path`: string) -> ArrayBuffer
+
+Read a file from the virtual filesystem. Returns the file contents as ArrayBuffer.
+
+### `.fs.dir`(`path`: string) -> string[]
+
+List directory contents. Returns an array of filenames.
+
+### `.fs.unlink`(`path`: string) -> `SPL`
+
+Delete a file from the virtual filesystem.
+
+### `.fs.mkdir`(`path`: string) -> `SPL`
+
+Create a directory in the virtual filesystem.
+
+### `.fs.unmount`(`path`: string) -> `SPL`
+
+Unmount a previously mounted path.
+
 **Node**
 
-### `.mount`(`path`: string [, `mountpoint`: string]) -> `SPL`
+### `.fs.mount`(`path`: string [, `mountpoint`: string]) -> `SPL`
 
-If no mountpoint is provided the local `path` will be mouted as root e.g. `a_dir/some_dir/some_file` is available as `some_dir/some_file` if mounted as `spl.mount(path: 'a_dir')`.
+If no mountpoint is provided the local `path` will be mounted as root e.g. `a_dir/some_dir/some_file` is available as `some_dir/some_file` if mounted as `spl.fs.mount('a_dir')`.
 
-
-### `.unmount`(`path`: string) -> `SPL`
-
-### `.terminate`()
-
-Terminates the WebWorker (only Browser).
+### `.fs.unmount`(`path`: string) -> `SPL`
 
 ## DB
 
@@ -223,6 +260,10 @@ A result object with the following properties (*thenables* in a browser):
 
 With `sync` (browser only) all ArrayBuffers will be transfered without copying (transferables) from the WebWorker.
 
+### `.free`() -> void
+
+Free result memory. Called automatically after accessing result properties, but can be called manually if needed.
+
 ## Extensions API (Browser only)
 
 Sometimes you want to run code inside the WebWorker. With this API you can supply additional functions to extend the `SPL` and `DB` APIs executed inside the WebWorker.
@@ -262,14 +303,19 @@ const db = await spl.db()
 
 console.assert(await db.tables().get.first === 'hello');
 console.assert(await db.master('view').get.first === 'hello_view');
-console.assert(await spl.spatialite_version() === '5.1.0');
+console.assert(await spl.spatialite_version() === '5.1.1-rc0');
 ```
 
 ## Building and Testing
 
-An activated, working emsdk environment (3.1.50) is required (https://emscripten.org/docs/tools_reference/emsdk.html). All dependencies except SpatiaLite & sqlean (git submodules) are fetched from the web. The git submodules needs to be initialized before running the build script.
+Requirements:
+- An activated emsdk environment (4.0.x) - https://emscripten.org/docs/tools_reference/emsdk.html
+- Fossil SCM for fetching SpatiaLite sources - https://fossil-scm.org/
+
+All C dependencies are fetched from the web. The sqlean git submodule needs to be initialized before running the build script.
 
 ```bash
+git submodule update --init
 npm install && npm run build:all
 ```
 
@@ -283,7 +329,7 @@ Running (the relevant) SpatiaLite test cases - this will take quite some time ..
 Requires node >= v21 to run test cases without .mjs extension.
 
 ```bash
-npm run test:em
+npm run test:libspatialite
 ```
 
 ## Performance

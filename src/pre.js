@@ -9,17 +9,18 @@ Module.preRun = function () {
     }
 
     Module.FS = FS;
-    Module.NODEFS = NODEFS;
+    Module.NODEFS = typeof NODEFS !== 'undefined' ? NODEFS : null;
     Module.MEMFS = MEMFS;
-    Module.WORKERFS = WORKERFS;
+    Module.WORKERFS = typeof WORKERFS !== 'undefined' ? WORKERFS : null;
     Module.ENVIRONMENT_IS_NODE = ENVIRONMENT_IS_NODE;
 };
 
-
 const stream_ops_read = (stream, buffer, offset, length, position) => {
-
     if (position >= stream.node.size || length == 0) return 0;
-    if (stream.node.contents instanceof Blob || stream.node.contents instanceof File) {
+    if (
+        stream.node.contents instanceof Blob ||
+        stream.node.contents instanceof File
+    ) {
         var chunk = stream.node.contents.slice(position, position + length);
         var ab = WORKERFS.reader.readAsArrayBuffer(chunk);
         buffer.set(new Uint8Array(ab), offset);
@@ -27,33 +28,36 @@ const stream_ops_read = (stream, buffer, offset, length, position) => {
     } else {
         const data = new Uint8Array(stream.node.xhr.read(position, length));
         if (!data) {
-            throw new Error(`Fetching range from ${stream.node.contents} failed.`);
+            throw new Error(
+                `Fetching range from ${stream.node.contents} failed.`,
+            );
         }
         buffer.set(data, offset);
         return data.length;
     }
-
 };
 
 const createNode = (parent, name, mode, dev, contents, mtime) => {
-
     const node = FS.createNode(parent, name, mode);
     node.mode = mode;
     node.node_ops = WORKERFS.node_ops;
     node.stream_ops = WORKERFS.stream_ops;
-    node.timestamp = (mtime || new Date).getTime();
+    node.timestamp = (mtime || new Date()).getTime();
     assert(WORKERFS.FILE_MODE !== WORKERFS.DIR_MODE);
 
     if (mode === WORKERFS.FILE_MODE) {
         if (contents instanceof Blob || contents instanceof File) {
             node.size = contents.size;
             node.contents = contents;
-        } else { // must be a string/url
-            assert(typeof(contents) === 'string');
+        } else {
+            // must be a string/url
+            assert(typeof contents === 'string');
             node.xhr = new XHR(contents);
             node.size = node.xhr.size();
             if (node.size < 0) {
-                throw new Error(`Fetching size from ${stream.node.contents} failed.`);
+                throw new Error(
+                    `Fetching size from ${stream.node.contents} failed.`,
+                );
             }
         }
     } else {
@@ -66,9 +70,7 @@ const createNode = (parent, name, mode, dev, contents, mtime) => {
     return node;
 };
 
-
 class XHR {
-
     constructor(url) {
         this._size = 0;
         this.expected_pos = 0;
@@ -114,7 +116,7 @@ class XHR {
         if (this.header.byteLength) {
             return this.header.slice(pos, pos + len);
         }
-        return null
+        return null;
     }
 
     fromBuffer(pos, len) {
@@ -122,7 +124,7 @@ class XHR {
         if (start >= 0 && pos + len <= this.pos + this.buffer.byteLength) {
             return this.buffer.slice(start, start + len);
         }
-        return null
+        return null;
     }
 
     fetch(pos, len) {
@@ -134,7 +136,10 @@ class XHR {
         do {
             retry += 1;
             this.xhr.open('GET', this.url, false);
-            this.xhr.setRequestHeader('Range', `bytes=${pos}-${Math.min(this._size - 1, pos + len - 1)}`);
+            this.xhr.setRequestHeader(
+                'Range',
+                `bytes=${pos}-${Math.min(this._size - 1, pos + len - 1)}`,
+            );
             this.xhr.send(null);
         } while (retry < 3 && this.xhr.status != 206);
         return buffer;
@@ -158,7 +163,10 @@ class XHR {
         // the higher the likelihood it will continue to read consecutive pages:
         // Then increase no. pages pre-fetched.
         if (pos === this.expected_pos) {
-            this.prefetch_len = Math.min(len * 256, 2 * (this.prefetch_len ? this.prefetch_len : len));
+            this.prefetch_len = Math.min(
+                len * 256,
+                2 * (this.prefetch_len ? this.prefetch_len : len),
+            );
         } else {
             this.prefetch_len = len;
         }
@@ -168,5 +176,4 @@ class XHR {
         this.pos = pos;
         return this.fromBuffer(pos, len);
     }
-
 }

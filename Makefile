@@ -1,18 +1,21 @@
 PWD = $(shell pwd)
+DOWNLOAD_DIR = $(PWD)/src/downloads
 BUILD_DIR = $(PWD)/src/build
 BC_DIR = $(BUILD_DIR)/bc
 PREFIX = --prefix=$(BC_DIR)
 
-SQLITE_VERSION = 3440200
-GEOS_VERSION = 3.12.1
-PROJ_VERSION = 9.3.1
+SQLITE_VERSION = 3510100
+GEOS_VERSION = 3.14.1
+PROJ_VERSION = 9.7.1
 RTTOPO_VERSION = 1.1.0
 
 ZLIB_VERSION = 1.3.1
-XML2_VERSION = 2.9.12
-ICONV_VERSION = 1.17
+XML2_VERSION = 2.14.6
+ICONV_VERSION = 1.18
 
-SPATIALITE_SRC = src/spatialite
+# SpatiaLite commit hash for reproducible builds (2024-03-29)
+SPATIALITE_COMMIT = 5a5528e8d206c5e86f1176677f52ac1acafa1fa5
+SPATIALITE_SRC = $(BUILD_DIR)/libspatialite
 SQLITE_SRC = $(BUILD_DIR)/sqlite-autoconf-$(SQLITE_VERSION)
 GEOS_SRC = $(BUILD_DIR)/geos-$(GEOS_VERSION)
 PROJ_SRC = $(BUILD_DIR)/proj-$(PROJ_VERSION)
@@ -24,12 +27,12 @@ SQLEAN_EXT_SRC = src/sqlean/src
 
 DIST_WORKER_FLAGS :=
 DIST_WORKER_FLAGS += -s EXPORT_ES6=1
-DIST_WORKER_FLAGS += -s USE_ES6_IMPORT_META=0
+DIST_WORKER_FLAGS += -s USE_ES6_IMPORT_META=1
 DIST_WORKER_FLAGS += -s MODULARIZE=1
 DIST_WORKER_FLAGS += -s EXPORT_NAME="spl"
 DIST_WORKER_FLAGS += -s ENVIRONMENT="worker"
 DIST_WORKER_FLAGS += -s WASM_ASYNC_COMPILATION=0
-DIST_WORKER_FLAGS += --memory-init-file 0
+DIST_WORKER_FLAGS += -lworkerfs.js
 
 DIST_NODE_FLAGS :=
 DIST_NODE_FLAGS += -s EXPORT_ES6=1
@@ -38,15 +41,13 @@ DIST_NODE_FLAGS += -s MODULARIZE=1
 DIST_NODE_FLAGS += -s EXPORT_NAME="spl"
 DIST_NODE_FLAGS += -s ENVIRONMENT="node"
 DIST_NODE_FLAGS += -s WASM_ASYNC_COMPILATION=0
-DIST_NODE_FLAGS += --memory-init-file 0
+DIST_NODE_FLAGS += -lnodefs.js
 
 ELD_FLAGS += -s INITIAL_MEMORY=64MB
 ELD_FLAGS += -s ALLOW_MEMORY_GROWTH=1
 ELD_FLAGS += -s ALLOW_TABLE_GROWTH=1
 ELD_FLAGS += -s RETAIN_COMPILER_SETTINGS=1
 ELD_FLAGS += --minify 0
-ELD_FLAGS += -lnodefs.js
-ELD_FLAGS += -lworkerfs.js
 
 EMX_FLAGS :=
 EMX_FLAGS += -s DISABLE_EXCEPTION_CATCHING=0
@@ -61,12 +62,13 @@ ifdef DEBUG
 	EMX_FLAGS += -s DEMANGLE_SUPPORT=1
 	EMX_FLAGS += --source-map-base /$(BUILD_DIR)/spatialite/
 else
-	EMX_FLAGS += -Os
+	EMX_FLAGS += -Oz
 endif
 
 em: dir zlib iconv sqlite proj proj-db-min geos rttopo xml2 spatialite extensions
 
 dir:
+	mkdir -p $(DOWNLOAD_DIR);
 	mkdir -p $(BUILD_DIR);
 	mkdir -p $(BUILD_DIR)/bc;
 	mkdir -p $(BUILD_DIR)/js;
@@ -87,9 +89,8 @@ zlib: zlib-conf
 	cp libminizip.a $(BC_DIR)/lib;
 
 zlib-src:
-	cd $(BUILD_DIR); \
-	wget -nc https://zlib.net/zlib-$(ZLIB_VERSION).tar.gz; \
-	tar -xf zlib-$(ZLIB_VERSION).tar.gz;
+	cd $(DOWNLOAD_DIR) && wget -nc https://zlib.net/zlib-$(ZLIB_VERSION).tar.gz; \
+	[ -d $(ZLIB_SRC) ] || tar -xf $(DOWNLOAD_DIR)/zlib-$(ZLIB_VERSION).tar.gz -C $(BUILD_DIR);
 
 iconv-conf: iconv-src
 	cd $(ICONV_SRC); \
@@ -101,24 +102,22 @@ iconv: iconv-conf
 	emmake make install;
 
 iconv-src:
-	cd $(BUILD_DIR); \
-	wget -nc https://ftp.gnu.org/gnu/libiconv/libiconv-$(ICONV_VERSION).tar.gz; \
-	tar -xf libiconv-$(ICONV_VERSION).tar.gz;
+	cd $(DOWNLOAD_DIR) && wget -nc https://ftp.gnu.org/gnu/libiconv/libiconv-$(ICONV_VERSION).tar.gz; \
+	[ -d $(ICONV_SRC) ] || tar -xf $(DOWNLOAD_DIR)/libiconv-$(ICONV_VERSION).tar.gz -C $(BUILD_DIR);
 
 sqlite-src:
-	cd $(BUILD_DIR); \
-	wget -nc https://www.sqlite.org/2023/sqlite-autoconf-$(SQLITE_VERSION).tar.gz; \
-	tar -xf sqlite-autoconf-$(SQLITE_VERSION).tar.gz;
+	cd $(DOWNLOAD_DIR) && wget -nc https://www.sqlite.org/2025/sqlite-autoconf-$(SQLITE_VERSION).tar.gz; \
+	[ -d $(SQLITE_SRC) ] || tar -xf $(DOWNLOAD_DIR)/sqlite-autoconf-$(SQLITE_VERSION).tar.gz -C $(BUILD_DIR);
 
 sqlite-conf: sqlite-src
 	cd $(SQLITE_SRC); \
-	emconfigure ./configure $(PREFIX)  --host=none-none-none \
-	--disable-tcl --disable-shared --disable-editline --disable-readline --disable-load-extension;
+	emconfigure ./configure $(PREFIX) --host=none-none-none \
+	--disable-shared --disable-readline --disable-load-extension --disable-threadsafe --fts5;
 
 sqlite: sqlite-conf
 	cd $(SQLITE_SRC); \
 	emmake make -j4 \
-	CFLAGS="$(EMX_FLAGS) -DSQLITE_CORE -DSQLITE_ALLOW_ROWID_IN_VIEW -DSQLITE_ENABLE_FTS5 -DSQLITE_USE_URI=1 -DSQLITE_DQS=0 -DSQLITE_THREADSAFE=0 -DSQLITE_ENABLE_JSON1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_OMIT_DEPRECATED -DSQLITE_OMIT_TCL_VARIABLE -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_DEFAULT_FOREIGN_KEYS=1" \
+	CFLAGS="$(EMX_FLAGS) -DSQLITE_ENABLE_RTREE -DSQLITE_CORE -DSQLITE_ALLOW_ROWID_IN_VIEW -DSQLITE_ENABLE_FTS5 -DSQLITE_USE_URI=1 -DSQLITE_DQS=0 -DSQLITE_THREADSAFE=0 -DSQLITE_ENABLE_JSON1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_OMIT_DEPRECATED -DSQLITE_OMIT_TCL_VARIABLE -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_DEFAULT_FOREIGN_KEYS=1" \
 	LDFLAGS="-s ERROR_ON_UNDEFINED_SYMBOLS=0"; \
 	emmake make install;
 
@@ -128,11 +127,8 @@ sqlite-clean:
 
 # required for running spatialite tests
 xml2-src:
-	cd $(BUILD_DIR); \
-	wget -nc https://gitlab.gnome.org/GNOME/libxml2/-/archive/v$(XML2_VERSION)/libxml2-$(XML2_VERSION).tar.gz; \
-	tar -xf  libxml2-$(XML2_VERSION).tar.gz; \
-	rm -fr libxml2-$(XML2_VERSION); \
-	mv libxml2-v$(XML2_VERSION)-* libxml2-$(XML2_VERSION);
+	cd $(DOWNLOAD_DIR) && wget -nc -O libxml2-$(XML2_VERSION).tar.gz https://gitlab.gnome.org/GNOME/libxml2/-/archive/v$(XML2_VERSION)/libxml2-v$(XML2_VERSION).tar.gz; \
+	[ -d $(XML2_SRC) ] || (tar -xf $(DOWNLOAD_DIR)/libxml2-$(XML2_VERSION).tar.gz -C $(BUILD_DIR) && mv $(BUILD_DIR)/libxml2-v$(XML2_VERSION) $(XML2_SRC));
 
 xml2-conf: xml2-src
 	cd $(XML2_SRC); \
@@ -153,15 +149,15 @@ proj-db-min:
 	sqlite3 $(BC_DIR)/share/proj_min.db < $(PWD)/scripts/projdb_min.sql;
 
 proj-src:
-	cd $(BUILD_DIR); \
-	wget -nc http://download.osgeo.org/proj/proj-$(PROJ_VERSION).tar.gz; \
-	tar -xf proj-$(PROJ_VERSION).tar.gz;
+	cd $(DOWNLOAD_DIR) && wget -nc http://download.osgeo.org/proj/proj-$(PROJ_VERSION).tar.gz; \
+	[ -d $(PROJ_SRC) ] || tar -xf $(DOWNLOAD_DIR)/proj-$(PROJ_VERSION).tar.gz -C $(BUILD_DIR);
 
 proj: proj-src
 	cd $(PROJ_SRC) && mkdir -p build && cd build; \
 	emcmake cmake -DCMAKE_CXX_FLAGS="$(EMX_FLAGS) -UHAVE_LIBDL" \
 	-DHAVE_LIBDL=OFF -DUSE_THREAD=OFF -DBUILD_CCT=OFF -DBUILD_PROJ=OFF -DBUILD_CS2CS=OFF -DBUILD_GEOD=OFF -DBUILD_GIE=OFF \
 	-DBUILD_PROJINFO=OFF -DBUILD_PROJSYNC=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DPROJ_NETWORK=OFF \
+	-DEMBED_RESOURCE_FILES=OFF \
 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(BC_DIR) -DENABLE_CURL=OFF -DENABLE_TIFF=OFF \
 	-DSQLITE3_LIBRARY=$(BC_DIR)/lib/libsqlite3 -DSQLITE3_INCLUDE_DIR=$(BC_DIR)/include -DPROJ_LIB="./proj" ..; \
 	emmake make -j4; \
@@ -172,14 +168,13 @@ proj-clean:
 
 
 geos-src:
-	cd $(BUILD_DIR); \
-	wget -nc http://download.osgeo.org/geos/geos-$(GEOS_VERSION).tar.bz2; \
-	tar -xf geos-$(GEOS_VERSION).tar.bz2; \
+	cd $(DOWNLOAD_DIR) && wget -nc http://download.osgeo.org/geos/geos-$(GEOS_VERSION).tar.bz2; \
+	[ -d $(GEOS_SRC) ] || tar -xf $(DOWNLOAD_DIR)/geos-$(GEOS_VERSION).tar.bz2 -C $(BUILD_DIR);
 
 geos: geos-src
 	cd $(GEOS_SRC) && mkdir -p build && cd build; \
 	emcmake cmake -DCMAKE_CXX_FLAGS="$(EMX_FLAGS)" \
-	-DBUILD_TESTING=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=OFF \
+	-DBUILD_TESTING=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_GEOSOP=OFF \
 	-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(BC_DIR) ..; \
 	emmake make -j4; \
 	emmake make install;
@@ -188,9 +183,8 @@ geos-clean:
 	cd $(GEOS_SRC) && make clean;
 
 rttopo-src:
-	cd $(BUILD_DIR); \
-	wget -nc https://git.osgeo.org/gitea/rttopo/librttopo/archive/librttopo-$(RTTOPO_VERSION).tar.gz; \
-	tar -xf librttopo-$(RTTOPO_VERSION).tar.gz;
+	cd $(DOWNLOAD_DIR) && wget -nc -O librttopo-$(RTTOPO_VERSION).tar.gz https://gitlab.com/rttopo/rttopo/-/archive/librttopo-$(RTTOPO_VERSION)/rttopo-librttopo-$(RTTOPO_VERSION).tar.gz; \
+	[ -d $(RTTOPO_SRC) ] || (tar -xf $(DOWNLOAD_DIR)/librttopo-$(RTTOPO_VERSION).tar.gz -C $(BUILD_DIR) && mv $(BUILD_DIR)/rttopo-librttopo-$(RTTOPO_VERSION) $(RTTOPO_SRC));
 
 rttopo-conf: rttopo-src
 	cd $(RTTOPO_SRC); \
@@ -205,8 +199,12 @@ rttopo: rttopo-conf
 rttopo-clean:
 	cd $(RTTOPO_SRC) && make clean;
 
+spatialite-src:
+	cd $(DOWNLOAD_DIR) && [ -f libspatialite.fossil ] || fossil clone https://www.gaia-gis.it/fossil/libspatialite libspatialite.fossil; \
+	[ -d $(SPATIALITE_SRC) ] || (mkdir -p $(SPATIALITE_SRC) && cd $(SPATIALITE_SRC) && fossil open $(DOWNLOAD_DIR)/libspatialite.fossil $(SPATIALITE_COMMIT));
+
 # remove some irrelevant tests that will fail (still some xls tests failing)
-spatialite-conf:
+spatialite-conf: spatialite-src
 	sed -i '/check_extension/d' $(SPATIALITE_SRC)/test/Makefile.am;
 	sed -i '/check_sql_stmt_legacy/d' $(SPATIALITE_SRC)/test/Makefile.am;
 	sed -i '/check_sql_stmt_extension/d' $(SPATIALITE_SRC)/test/Makefile.am;
@@ -243,10 +241,14 @@ spatialite-clean:
 
 
 extensions:
-	emcc -v -I$(SQLITE_SRC) -DSQLITE_CORE $(EMX_FLAGS) $(ELD_FLAGS) -c $(SQLEAN_EXT_SRC)/sqlite3-stats.c -o $(BC_DIR)/ex.o;
+	emcc -v -I$(SQLITE_SRC) -I$(SQLEAN_EXT_SRC) -DSQLITE_CORE $(EMX_FLAGS) -c $(SQLEAN_EXT_SRC)/sqlite3-stats.c -o $(BC_DIR)/ex-stats.o;
+	emcc -v -I$(SQLITE_SRC) -I$(SQLEAN_EXT_SRC) -DSQLITE_CORE $(EMX_FLAGS) -c $(SQLEAN_EXT_SRC)/stats/extension.c -o $(BC_DIR)/ex-stats-ext.o;
+	emcc -v -I$(SQLITE_SRC) -I$(SQLEAN_EXT_SRC) -DSQLITE_CORE $(EMX_FLAGS) -c $(SQLEAN_EXT_SRC)/stats/scalar.c -o $(BC_DIR)/ex-stats-scalar.o;
+	emcc -v -I$(SQLITE_SRC) -I$(SQLEAN_EXT_SRC) -DSQLITE_CORE $(EMX_FLAGS) -c $(SQLEAN_EXT_SRC)/stats/series.c -o $(BC_DIR)/ex-stats-series.o;
+	emar rcs $(BC_DIR)/lib/libsqlean.a $(BC_DIR)/ex-stats.o $(BC_DIR)/ex-stats-ext.o $(BC_DIR)/ex-stats-scalar.o $(BC_DIR)/ex-stats-series.o;
 
-# requires node 21 to load fils without extension as mjs
-tests:
+# requires node 21 to load files without extension as mjs
+libspatialite-tests:
 	cd $(SPATIALITE_SRC)/test; \
 	echo " \
 	Module.preRun = function () { \
@@ -268,7 +270,7 @@ tests:
 worker: src/pre.js
 	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_WORKER_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
 	-lz -lminizip -liconv -lsqlite3 -lgeos_c -lgeos -lrttopo -lproj -L$(BC_DIR)/lib \
-	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/lib/libsqlean.a \
 	-I$(SQLITE_SRC) \
 	-I$(SPATIALITE_SRC)/src/headers \
 	-I$(SPATIALITE_SRC)/src/headers/spatialite \
@@ -278,7 +280,7 @@ worker: src/pre.js
 node: src/pre.js
 	emcc -v $(EMX_FLAGS) $(ELD_FLAGS) $(DIST_NODE_FLAGS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME_METHODS) \
 	-lz -lminizip -liconv -lsqlite3 -lgeos_c -lgeos -lrttopo -lproj -L$(BC_DIR)/lib \
-	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/ex.o \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=1 $(BC_DIR)/lib/libspatialite.a $(BC_DIR)/lib/libsqlean.a \
 	-I$(SQLITE_SRC) \
 	-I$(SPATIALITE_SRC)/src/headers \
 	-I$(SPATIALITE_SRC)/src/headers/spatialite \

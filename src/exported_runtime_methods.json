@@ -1,11 +1,11 @@
 [
     "cwrap",
-    "ccall",
     "stackAlloc",
     "getValue",
     "setValue",
     "stringToUTF8",
     "UTF8ToString",
     "lengthBytesUTF8",
-    "writeArrayToMemory"
+    "writeArrayToMemory",
+    "HEAP8"
 ]

@@ -1,11 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-8" />
         <title>Topology</title>
         <style>
-            @import "./lib/ol.css";
-            html, body {
+            @import './lib/ol.css';
+            html,
+            body {
                 width: 100%;
                 height: 100%;
                 overflow: hidden;
@@ -19,90 +20,24 @@
         <script type="module" src="./lib/lib.js"></script>
     </head>
     <body>
-        <pre style="text-align:center; width: 100%; margin-top: 20px;">
+        <pre style="text-align: center; width: 100%; margin-top: 20px">
             Move slider to simplify boundaries. Simplified boundaries will we visualized as soon as the topology <mwc-circular-progress id="progress" style="vertical-align: middle;" density=-8 indeterminate></mwc-circular-progress> has been built from the geopackage.
         </pre>
         <div class="container">
-            <mwc-slider id="slider" discrete withTickMarks max="2000" min="0" value="0" step="100"></mwc-slider>
-            <div id='svg-container' style="text-align:center; width: 100%;">
-            </div>
+            <mwc-slider
+                id="slider"
+                discrete
+                withTickMarks
+                max="2000"
+                min="0"
+                value="0"
+                step="100"
+            ></mwc-slider>
+            <div
+                id="svg-container"
+                style="text-align: center; width: 100%"
+            ></div>
         </div>
+        <script type="module" src="./topology.js"></script>
     </body>
-    <script type="module">
-
-        import SPL from '../dist/index.js';
-
-        document.querySelector('#slider').valueToValueIndicatorTransform = (v) => v + 'm';
-
-        (async () => {
-            try {
-                const container = document.querySelector('#svg-container')
-                const svg = (table) => {
-                    db.exec(`select assvg(geom, 0, 1) path from ${table} where geom not null`).get.objs.then(res => {
-                        const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                        svgEl.setAttribute('height', '800px');
-                        svgEl.setAttribute('viewBox', `${mbr[0]} ${-mbr[3]} ${mbr[1] - mbr[0]} ${mbr[3] - mbr[2]}`);
-                        res.forEach(row => {
-                            const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                            pathEl.setAttribute('d', row.path);
-                            pathEl.setAttribute('fill', 'whitesmoke');
-                            pathEl.setAttribute('stroke', '#6200ee');
-                            pathEl.setAttribute('stroke-width', 100);
-                            svgEl.appendChild(pathEl);
-                        });
-                        container.innerHTML = '';
-                        container.appendChild(svgEl);
-                    });
-                };
-
-                document.querySelector('mwc-slider').addEventListener('input', evt => {
-                    const m = evt.target.value;
-                    db.exec(`select count() from sqlite_master where type=\'table\' and name=\'london_boroughs_${m}\'`)
-                        .get.first.then(exists => {
-                            if (!exists) {
-                                db.exec('select topogeo_togeotablegeneralize(?, ?, ?, ?, ?, ?)', [
-                                    'topo', null, 'london_boroughs_0', 'geom', 'london_boroughs_' + m, m
-                                ]).then(() => svg('london_boroughs_' + m));
-                            } else {
-                                svg('london_boroughs_' + m);
-                            }
-                        });
-
-                });
-
-                const spl = await SPL();
-
-                const db = await spl.mount('data', [
-                    { name: 'london_boroughs', data: new URL('../test/files/dbs/london.gpkg', window.location.href).toString() }
-                ]).db()
-                    .exec('select initspatialmetadata(1)')
-                    .attach('file:data/london_boroughs?immutable=1', 'london');
-
-                const srid = await db.exec('select srid(geom) from london.london_boroughs limit 1').get.first;
-
-                await db.read(`
-                    create table london_boroughs_0 (name);
-                    select addgeometrycolumn(\'london_boroughs_0\', \'geom\', ${srid}, \'POLYGON\');
-                    insert into london_boroughs_0 select name, geomfromgpb(geom) from london.london_boroughs;
-                `);
-
-                const mbr = await db.exec(`
-                    select json_array(mbrminx(geom), mbrmaxx(geom), mbrminy(geom), mbrmaxy(geom))
-                    from (select extent(geom) geom from london_boroughs_0)
-                `).get.first;
-
-                svg('london_boroughs_0');
-
-                db.exec('select createtopology(?, ?, ?, ?)', ['topo', srid, 0, 0])
-                    .exec('select topogeo_fromgeotable(?, ?, ?, ?)', [
-                        'topo', null, 'london_boroughs_0', null
-                    ]).then(() => document.querySelector('#progress').remove());
-
-            } catch (err) {
-                console.log(err);
-            }
-        })();
-
-    </script>
-
 </html>

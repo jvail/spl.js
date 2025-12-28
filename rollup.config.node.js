@@ -11,6 +11,7 @@ const cp = copy({
         { src: 'src/build/js/index.wasm', dest: 'dist' },
         { src: 'src/build/bc/share/proj', dest: 'dist' },
         { src: 'src/index.mjs', dest: 'dist' },
+        { src: 'src/typedefs.js', dest: 'dist' },
     ]
 });
 

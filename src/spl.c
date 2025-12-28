@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <emscripten.h>
 #include <sqlite3.h>
 #include <spatialite.h>
@@ -7,10 +8,31 @@
 extern "C" {
 #endif
 
+/*
+ * Stub for sqlite3_enable_load_extension.
+ * SQLite is built with --disable-load-extension for WASM (no dynamic loading),
+ * but SpatiaLite's stored_procedures.c calls this function when LOADABLE_EXTENSION
+ * is not defined. This stub satisfies the linker and returns success.
+ */
+int sqlite3_enable_load_extension(sqlite3 *db, int onoff) {
+    (void)db;
+    (void)onoff;
+    return SQLITE_OK;
+}
+
 void EMSCRIPTEN_KEEPALIVE initGaiaOutBuffer(gaiaOutBufferPtr *out_buf) {
-    gaiaOutBuffer _out_buf;
-    gaiaOutBufferInitialize (&_out_buf);
-    *out_buf  = &_out_buf;
+    gaiaOutBuffer *_out_buf = (gaiaOutBuffer *)malloc(sizeof(gaiaOutBuffer));
+    if (_out_buf) {
+        gaiaOutBufferInitialize(_out_buf);
+    }
+    *out_buf = _out_buf;
+}
+
+void EMSCRIPTEN_KEEPALIVE freeGaiaOutBuffer(gaiaOutBufferPtr out_buf) {
+    if (out_buf) {
+        gaiaOutBufferReset(out_buf);
+        free(out_buf);
+    }
 }
 
 char* EMSCRIPTEN_KEEPALIVE gaiaToJSON(gaiaOutBufferPtr out_buf, unsigned char *blob, int n_bytes, int precision, int options) {;

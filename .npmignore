@@ -1,6 +1,6 @@
 src/tmp
 src/build
+src/downloads
 node_modules
-src/spatialite
 src/sqlean
 .vscode

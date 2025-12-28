@@ -1,43 +1,38 @@
+/** @import { SplOptions, ResultData, VersionInfo } from './typedefs.js' */
+
 /**
- * @typedef {Object} Result
- * @property {any} first
- * @property {any[]} flat
- * @property {any[]} rows
- * @property {string[]} cols
- * @property {{}[]} objs
- * @property {Result} sync
- *
- * @typedef {Object} AutoGeoJSON
- * @property {number} precision
- * @property {0|1|2|3|4|5} options
- *
- * @typedef {Object} SplOptions
- * @property {boolean} autoJSON
- * @property {AutoGeoJSON} autoGeoJSON
- *
+ * Database instance
  * @typedef {Object} Db
- * @property {(db: string, schema: string) => Db} attach
- * @property {(schema: string) => Db} detach
- * @property {(sql: string, parameters?: any[] | {[name:string]: any}) => Db} exec
- * @property {(sql: string) => Db} read
- * @property {(src: string) => Db} load
- * @property {(dest?: string) => Db} save
- * @property {() => Spl} close
- * @property {Result} get
- *
+ * @property {(db: string, schema: string) => Db} attach - Attach another database
+ * @property {(schema: string) => Db} detach - Detach a database
+ * @property {(sql: string, parameters?: any[] | {[name:string]: any}) => Db} exec - Execute SQL
+ * @property {(sql: string) => Db} read - Read and execute a SQL script
+ * @property {(src: string) => Db} load - Load database from path
+ * @property {(dest?: string) => Db | ArrayBuffer} save - Save database to path or ArrayBuffer
+ * @property {() => Spl} close - Close the database
+ * @property {ResultData} get - Get query results
+ */
+
+/**
+ * Filesystem operations (Node.js)
+ * @typedef {Object} SplFs
+ * @property {(path: string, mountpoint?: string) => Spl} mount - Mount a local directory
+ * @property {(path: string) => Spl} unmount - Unmount a directory
+ */
+
+/**
+ * SPL instance
  * @typedef {Object} Spl
- * @property {(path?: string | ArrayBuffer) => Db} db
- * @property {(path: string, mountpoint?: string) => Spl} mount
- * @property {(path: string) => Spl} unmount
- * @property {() => any} version
- *
+ * @property {(path?: string | ArrayBuffer) => Db} db - Open a database
+ * @property {() => VersionInfo} version - Get version info
+ * @property {SplFs} fs - Filesystem operations
  */
 
 import spl from './spl-node.mjs';
 
 /**
- * @param {SplOptions} options
- *
- * @returns {Spl}
+ * Initialize spl.js for Node.js
+ * @param {SplOptions} [options={}] - Configuration options
+ * @returns {Promise<Spl>}
  */
-export default (options={}) => spl(null, options);
+export default (options = {}) => spl(options);
