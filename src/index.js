@@ -31,13 +31,23 @@
  */
 
 /**
+ * Filesystem operations (Browser)
+ * @typedef {Object} SplFs
+ * @property {(path: string, options?: MountOption[]) => Thenable<Spl>} mount - Mount files to virtual filesystem
+ * @property {(path: string) => Thenable<Spl>} unmount - Unmount from virtual filesystem
+ * @property {(path: string) => Promise<ArrayBuffer>} file - Read file from virtual filesystem
+ * @property {(path: string) => Promise<string[]>} dir - List directory contents
+ * @property {(path: string) => Thenable<Spl>} unlink - Delete file from virtual filesystem
+ * @property {(path: string) => Thenable<Spl>} mkdir - Create directory in virtual filesystem
+ */
+
+/**
  * SPL instance
  * @typedef {Object} Spl
  * @property {(path?: string | ArrayBuffer) => Thenable<Db>} db - Open a database
- * @property {(path: string, options?: MountOption[]) => Thenable<Spl>} mount - Mount files
- * @property {(path: string) => Thenable<Spl>} unmount - Unmount files
  * @property {() => Thenable<Spl>} version - Get version info
- * @property {() => void} terminate - Terminate the WebWorker
+ * @property {(cleanup?: boolean) => void} terminate - Terminate the WebWorker
+ * @property {SplFs} fs - Filesystem operations
  */
 
 import spl from './spl-web.js';

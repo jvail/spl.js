@@ -1,16 +1,6 @@
 # spl.js
 
-SpatiaLite and friends - sqlite, geos, proj, rttopo - for node (sync API) and browser (async API).
-
-## Bundled Library Versions
-
-| Library | Version |
-|---------|---------|
-| SpatiaLite | 5.1.1-rc0 |
-| SQLite | 3.51.1 |
-| GEOS | 3.14.1 |
-| PROJ | 9.7.1 |
-| librttopo | 1.1.0 |
+SpatiaLite 5.1.1-rc0 and friends - sqlite 3.51.1, geos 3.14.1, proj 9.7.1, rttopo 1.1.0 - for node (sync API) and browser (async API).
 
 [Here is a list](doc/spatialite_functions.md) of supported SpatiaLite SQL functions and [a list](doc/extensions_functions.md) of available SQLite extension functions/modules.
 

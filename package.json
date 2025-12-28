@@ -1,22 +1,26 @@
 {
   "name": "spl.js",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "type": "module",
   "exports": {
     ".": {
       "node": {
+        "types": "./dist/index.d.mts",
         "import": "./dist/index.mjs"
       },
       "browser": {
+        "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
       },
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
   "main": "./dist/index.js",
   "browser": "./dist/index.js",
   "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test:node": "node test/node.js",
     "test:electron": "node test/electron.js",
@@ -29,7 +33,8 @@
     "build:web": "npm run build:worker && node scripts/stringify && rollup -c rollup.config.web.js --bundleConfigAsCjs",
     "build:web:debug": "npm run build:worker -- --configDebug && node scripts/stringify && rollup -c rollup.config.web.js --bundleConfigAsCjs --configDebug",
     "build:worker": "rollup -c rollup.config.worker.js --bundleConfigAsCjs",
-    "build:all": "make em && npm run build:em && npm run build:web && npm run build:node",
+    "build:types": "tsc --declaration --emitDeclarationOnly --allowJs --skipLibCheck --outDir dist src/index.js src/index.mjs src/typedefs.js",
+    "build:all": "make em && npm run build:em && npm run build:web && npm run build:node && npm run build:types",
     "format": "prettier --write \"src/**/*.{js,mjs}\" \"test/**/*.js\""
   },
   "repository": {
@@ -61,7 +66,8 @@
     "rollup": "^3.28.1",
     "rollup-plugin-copy": "^3.4.0",
     "tape": "^5.2.2",
-    "tape-run": "^11.0.0"
+    "tape-run": "^11.0.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "pako": "^2.1.0"
