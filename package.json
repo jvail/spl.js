@@ -1,6 +1,6 @@
 {
   "name": "spl.js",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "type": "module",
   "exports": {
@@ -33,7 +33,7 @@
     "build:web": "npm run build:worker && node scripts/stringify && rollup -c rollup.config.web.js --bundleConfigAsCjs",
     "build:web:debug": "npm run build:worker -- --configDebug && node scripts/stringify && rollup -c rollup.config.web.js --bundleConfigAsCjs --configDebug",
     "build:worker": "rollup -c rollup.config.worker.js --bundleConfigAsCjs",
-    "build:types": "tsc --declaration --emitDeclarationOnly --allowJs --skipLibCheck --outDir dist src/index.js src/index.mjs src/typedefs.js",
+    "build:types": "tsc --declaration --emitDeclarationOnly --allowJs --skipLibCheck --outDir dist src/spl-web.js src/spl-node.mjs src/typedefs.js && mv dist/spl-web.d.ts dist/index.d.ts && mv dist/spl-node.d.mts dist/index.d.mts && rm -f dist/spl.d.ts dist/result.d.ts && rm -rf dist/build && sed -i 's/^import type/export type/' dist/index.d.ts dist/index.d.mts",
     "build:all": "make em && npm run build:em && npm run build:web && npm run build:node && npm run build:types",
     "format": "prettier --write \"src/**/*.{js,mjs}\" \"test/**/*.js\""
   },

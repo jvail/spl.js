@@ -1,6 +1,7 @@
 import { d3, geoAitoff, topojson } from './lib/lib.js';
 import SPL from '../dist/index.js';
 
+/** @type {import('../dist/index.js').DbExtension} */
 const extension = {
     extends: 'db',
     fns: {
@@ -33,7 +34,7 @@ const db = await spl
 const context = d3.select('canvas').node().getContext('2d');
 const path = d3.geoPath().projection(geoAitoff()).context(context);
 
-db.toTopoJSON('world').then((topology) => {
+db.ex.toTopoJSON('world').then((topology) => {
     context.beginPath();
     document.querySelector('#progress').remove();
     path(topojson.mesh(topology));

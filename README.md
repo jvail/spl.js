@@ -146,7 +146,7 @@ options:
 
 ### `.version`() -> `VersionInfo`
 
-Returns an object with version strings for all bundled libraries: `spatialite`, `sqlite`, `geos`, `proj`, `rttopo`, `spl.js`.
+Returns an object with version strings for all bundled libraries: `spatialite`, `sqlite`, `geos`, `proj`, `rttopo`, `spl`.
 
 ### `.terminate`()
 
@@ -258,42 +258,56 @@ Free result memory. Called automatically after accessing result properties, but 
 
 Sometimes you want to run code inside the WebWorker. With this API you can supply additional functions to extend the `SPL` and `DB` APIs executed inside the WebWorker.
 
+Extension functions are available via the `ex` namespace: `db.ex.myFn()` and `spl.ex.myFn()`.
+
 Example: https://jvail.github.io/spl.js/examples/extensions.html
+
+### TypeScript Types
+
+Two extension types are available:
+
+- `DbExtension` - extends the database API, functions receive `DbSync` as first argument
+- `SplExtension` - extends the SPL API, functions receive `SplSync` as first argument
+
+```ts
+import type { DbExtension, SplExtension } from 'spl.js';
+```
 
 ### Example Code
 
 ```js
-const extensions = [
-    {
-        extends: 'db',
-        fns: {
-            'tables': db => db.exec('SELECT name FROM sqlite_master WHERE type=\'table\''),
-            'master': (db, type) => db.exec('SELECT name FROM sqlite_master WHERE type=?', [type])
-        }
-    },
-    {
-        extends: 'spl',
-        fns: {
-            'spatialite_version': spl => {
-                const db = spl.db();
-                const version = db.exec('SELECT spatialite_version()').get.first;
-                db.close();
-                return version;
-            }
+/** @type {import('spl.js').DbExtension} */
+const dbExtension = {
+    extends: 'db',
+    fns: {
+        tables: db => db.exec('SELECT name FROM sqlite_master WHERE type=\'table\''),
+        master: (db, type) => db.exec('SELECT name FROM sqlite_master WHERE type=?', [type])
+    }
+};
+
+/** @type {import('spl.js').SplExtension} */
+const splExtension = {
+    extends: 'spl',
+    fns: {
+        spatialite_version: spl => {
+            const db = spl.db();
+            const version = db.exec('SELECT spatialite_version()').get.first;
+            db.close();
+            return version;
         }
     }
-];
+};
 
-const spl = await SPL({}, extensions);
+const spl = await SPL({}, [dbExtension, splExtension]);
 const db = await spl.db()
     .read(`
         CREATE TABLE hello (world);
         CREATE VIEW hello_view AS SELECT * FROM hello;
     `);
 
-console.assert(await db.tables().get.first === 'hello');
-console.assert(await db.master('view').get.first === 'hello_view');
-console.assert(await spl.spatialite_version() === '5.1.1-rc0');
+console.assert(await db.ex.tables().get.first === 'hello');
+console.assert(await db.ex.master('view').get.first === 'hello_view');
+console.assert(await spl.ex.spatialite_version() === '5.1.1-rc0');
 ```
 
 ## Building and Testing

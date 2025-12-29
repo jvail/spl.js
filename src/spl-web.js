@@ -1,4 +1,4 @@
-/** @import { SplOptions, Extension, ResultData, MountOption } from './typedefs.js' */
+/** @import { SplOptions, DbExtension, SplExtension, ResultData, MountOption, VersionInfo } from './typedefs.js' */
 
 import * as pako from 'pako';
 import workerStr from './build/js/worker.str.js';
@@ -59,16 +59,9 @@ const cleanupResources = () => {
 };
 
 /**
- * @typedef {Object} ProcessedExtension
- * @property {'db'|'spl'} extends
- * @property {string} url
- * @property {{[name: string]: string}} fns
- */
-
-/**
  * Create and initialize a WebWorker
  * @param {SplOptions} [options={}]
- * @param {Extension[]} [extensions=[]]
+ * @param {(DbExtension | SplExtension)[]} [extensions=[]]
  * @returns {Promise<Worker>}
  */
 const worker = (options = {}, extensions = []) => {
@@ -108,12 +101,6 @@ const worker = (options = {}, extensions = []) => {
 };
 
 /**
- * @typedef {Object} QueueItem
- * @property {(res: any) => void} resolve
- * @property {(err: any) => void} reject
- */
-
-/**
  * @template T
  * @typedef {T & PromiseLike<T>} Thenable
  */
@@ -131,9 +118,10 @@ const worker = (options = {}, extensions = []) => {
 /**
  * @typedef {Object} Spl
  * @property {(path?: string|ArrayBuffer) => Db} db - Open a database
- * @property {() => Thenable<any>} version - Get version info
+ * @property {() => Thenable<VersionInfo>} version - Get version info
  * @property {(cleanup?: boolean) => void} terminate - Terminate the WebWorker
  * @property {SplFs} fs - Filesystem operations
+ * @property {Object.<string, Function>} ex - User-defined extension functions
  */
 
 /**
@@ -146,6 +134,7 @@ const worker = (options = {}, extensions = []) => {
  * @property {() => Thenable<Db>} save
  * @property {() => Thenable<Spl>} close
  * @property {Result} get
+ * @property {Object.<string, Function>} ex - User-defined extension functions
  */
 
 /**
@@ -162,14 +151,14 @@ const worker = (options = {}, extensions = []) => {
 /**
  * Create SPL instance wrapping WebWorker communication
  * @param {Worker} wkr - WebWorker instance
- * @param {Extension[]} [exs=[]] - Extensions
+ * @param {(DbExtension | SplExtension)[]} [exs=[]] - Extensions
  * @returns {Spl}
  */
 const spl = function (wkr, exs = []) {
     // @ts-ignore - constructor pattern
     if (!new.target) return new spl(wkr, exs);
 
-    /** @type {Object.<number, QueueItem>} */
+    /** @type {Object.<number, {resolve: (res: any) => void, reject: (err: any) => void}>} */
     const queue = {};
     const stackSpl = [];
 
@@ -292,6 +281,9 @@ const spl = function (wkr, exs = []) {
 
         this.then = this;
 
+        /** @type {Object.<string, Function>} */
+        this.ex = {};
+
         this.attach = (db, schema) => {
             stackDB.push({
                 id,
@@ -383,18 +375,16 @@ const spl = function (wkr, exs = []) {
 
         exs.filter((ex) => ex.extends === 'db').forEach((ex) => {
             Object.keys(ex.fns).forEach((fn_) => {
-                if (!(fn_ in this)) {
-                    const fn = `db.${fn_}`;
-                    this[fn_] = (...args) =>
-                        ((fn) => {
-                            stackDB.push({
-                                id,
-                                fn,
-                                args,
-                            });
-                            return thenDB();
-                        })(fn);
-                }
+                const fn = `db.${fn_}`;
+                this.ex[fn_] = (...args) =>
+                    ((fn) => {
+                        stackDB.push({
+                            id,
+                            fn,
+                            args,
+                        });
+                        return thenDB();
+                    })(fn);
             });
         });
 
@@ -402,6 +392,9 @@ const spl = function (wkr, exs = []) {
     };
 
     this.then = this;
+
+    /** @type {Object.<string, Function>} */
+    this.ex = {};
 
     this.version = () => {
         stackSpl.push({
@@ -502,16 +495,14 @@ const spl = function (wkr, exs = []) {
 
     exs.filter((ex) => ex.extends === 'spl').forEach((ex) => {
         Object.keys(ex.fns).forEach((fn) => {
-            if (!(fn in this)) {
-                this[fn] = (...args) =>
-                    ((fn) => {
-                        stackSpl.push({
-                            fn,
-                            args,
-                        });
-                        return thenSpl();
-                    })(fn);
-            }
+            this.ex[fn] = (...args) =>
+                ((fn) => {
+                    stackSpl.push({
+                        fn,
+                        args,
+                    });
+                    return thenSpl();
+                })(fn);
         });
     });
 };
@@ -519,7 +510,7 @@ const spl = function (wkr, exs = []) {
 /**
  * Initialize spl.js for Browser (WebWorker-based)
  * @param {SplOptions} [options={}] - Configuration options
- * @param {Extension[]} [extensions=[]] - API extensions
+ * @param {(DbExtension | SplExtension)[]} [extensions=[]] - API extensions
  * @returns {Promise<Spl>}
  */
 export default (options = {}, extensions = []) =>

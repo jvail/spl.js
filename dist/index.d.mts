@@ -69,6 +69,6 @@ export type Spl = {
      */
     fs: SplFs;
 };
-import type { SplOptions } from './typedefs.js';
-import type { ResultData } from './typedefs.js';
-import type { VersionInfo } from './typedefs.js';
+export type { SplOptions } from './typedefs.js';
+export type { ResultData } from './typedefs.js';
+export type { VersionInfo } from './typedefs.js';

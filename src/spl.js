@@ -812,7 +812,7 @@ const spl = async function (wasmBinary = null, options = {}) {
         geos_version() geos,
         proj_version() proj,
         rttopo_version() rttopo,
-        '${spl_version}' 'spl.js'`);
+        '${spl_version}' spl`);
         const ret = db_.get.objs[0];
         db_.close();
 

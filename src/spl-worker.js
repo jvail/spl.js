@@ -180,6 +180,8 @@ self.onmessage = function (evt) {
         })();
     } else {
         (async () => {
+            /** @typedef {{ extends: 'db' | 'spl', url: string, fns: { [name: string]: string } }} WorkerExtension */
+            /** @type {{ wasmBinary: ArrayBuffer, exs: WorkerExtension[], options: SplOptions }} */
             const { wasmBinary, exs, options } = evt.data;
             // @ts-ignore
             const modules = await Promise.all(exs.map((ex) => import(ex.url)));

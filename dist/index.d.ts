@@ -1,91 +1,13 @@
-declare function _default(options?: SplOptions, extensions?: Extension[]): Promise<Spl>;
+declare function _default(options?: SplOptions, extensions?: (DbExtension | SplExtension)[]): Promise<Spl>;
 export default _default;
-/**
- * - A value that is both T and awaitable as T
- */
 export type Thenable<T> = T & PromiseLike<T>;
-/**
- * Query result accessor (async)
- */
-export type Result = {
-    /**
-     * - First value of first row
-     */
-    first: Promise<any>;
-    /**
-     * - Flat array of all values
-     */
-    flat: Promise<any[]>;
-    /**
-     * - Array of row arrays
-     */
-    rows: Promise<any[][]>;
-    /**
-     * - Column names
-     */
-    cols: Promise<string[]>;
-    /**
-     * - Array of row objects
-     */
-    objs: Promise<any[]>;
-    /**
-     * - Synchronous result (transfers ArrayBuffers)
-     */
-    sync: Promise<ResultData>;
-    /**
-     * - Free result memory
-     */
-    free: () => Promise<void>;
-};
-/**
- * Database instance
- */
-export type Db = {
-    /**
-     * - Attach another database
-     */
-    attach: (db: string, schema: string) => Thenable<Db>;
-    /**
-     * - Detach a database
-     */
-    detach: (schema: string) => Thenable<Db>;
-    /**
-     * - Execute SQL
-     */
-    exec: (sql: string, parameters?: any[] | {
-        [name: string]: any;
-    }) => Thenable<Db>;
-    /**
-     * - Read and execute a SQL script
-     */
-    read: (sql: string) => Thenable<Db>;
-    /**
-     * - Load database from path
-     */
-    load: (src: string) => Thenable<Db>;
-    /**
-     * - Save database to ArrayBuffer
-     */
-    save: () => Thenable<Db>;
-    /**
-     * - Close the database
-     */
-    close: () => Thenable<Spl>;
-    /**
-     * - Get query results
-     */
-    get: Result;
-};
-/**
- * Filesystem operations (Browser)
- */
 export type SplFs = {
     /**
-     * - Mount files to virtual filesystem
+     * - Mount files
      */
     mount: (path: string, options?: MountOption[]) => Thenable<Spl>;
     /**
-     * - Unmount from virtual filesystem
+     * - Unmount files
      */
     unmount: (path: string) => Thenable<Spl>;
     /**
@@ -105,18 +27,15 @@ export type SplFs = {
      */
     mkdir: (path: string) => Thenable<Spl>;
 };
-/**
- * SPL instance
- */
 export type Spl = {
     /**
      * - Open a database
      */
-    db: (path?: string | ArrayBuffer) => Thenable<Db>;
+    db: (path?: string | ArrayBuffer) => Db;
     /**
      * - Get version info
      */
-    version: () => Thenable<Spl>;
+    version: () => Thenable<VersionInfo>;
     /**
      * - Terminate the WebWorker
      */
@@ -125,8 +44,41 @@ export type Spl = {
      * - Filesystem operations
      */
     fs: SplFs;
+    /**
+     * - User-defined extension functions
+     */
+    ex: {
+        [x: string]: Function;
+    };
 };
-import type { SplOptions } from './typedefs.js';
-import type { Extension } from './typedefs.js';
-import type { ResultData } from './typedefs.js';
-import type { MountOption } from './typedefs.js';
+export type Db = {
+    attach: (db: string, schema: string) => Thenable<Db>;
+    detach: (schema: string) => Thenable<Db>;
+    exec: (sql: string, par?: any) => Thenable<Db>;
+    read: (sql: string) => Thenable<Db>;
+    load: (src: string) => Thenable<Db>;
+    save: () => Thenable<Db>;
+    close: () => Thenable<Spl>;
+    get: Result;
+    /**
+     * - User-defined extension functions
+     */
+    ex: {
+        [x: string]: Function;
+    };
+};
+export type Result = {
+    first: Promise<any>;
+    flat: Promise<any[]>;
+    rows: Promise<any[][]>;
+    cols: Promise<string[]>;
+    objs: Promise<any[]>;
+    sync: Promise<ResultData>;
+    free: () => Promise<void>;
+};
+export type { SplOptions } from './typedefs.js';
+export type { DbExtension } from './typedefs.js';
+export type { SplExtension } from './typedefs.js';
+export type { MountOption } from './typedefs.js';
+export type { VersionInfo } from './typedefs.js';
+export type { ResultData } from './typedefs.js';

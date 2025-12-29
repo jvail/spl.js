@@ -78,9 +78,9 @@ export type VersionInfo = {
      */
     rttopo: string;
     /**
-     * 'spl.js' - spl.js version
+     * - spl.js version
      */
-    "": string;
+    spl: string;
 };
 /**
  * Mount options for browser (file data to mount in virtual filesystem)
@@ -96,19 +96,129 @@ export type MountOption = {
     data: ArrayBuffer | Blob | File | FileList | string;
 };
 /**
- * Extension definition for extending SPL or DB API
+ * Extension function for DB extensions - receives DbSync as first argument
  */
-export type Extension = {
+export type DbExtensionFn = (db: DbSync, ...args: any[]) => any;
+/**
+ * Extension function for SPL extensions - receives SplSync as first argument
+ */
+export type SplExtensionFn = (spl: SplSync, ...args: any[]) => any;
+/**
+ * Extension definition for extending the DB API
+ */
+export type DbExtension = {
     /**
-     * - What API to extend
+     * - Extends the database API
      */
-    extends: "db" | "spl";
+    extends: "db";
     /**
-     * - Extension functions
+     * - Extension functions that receive DbSync as first argument
      */
     fns: {
-        [name: string]: Function;
+        [name: string]: DbExtensionFn;
     };
+};
+/**
+ * Extension definition for extending the SPL API
+ */
+export type SplExtension = {
+    /**
+     * - Extends the SPL API
+     */
+    extends: "spl";
+    /**
+     * - Extension functions that receive SplSync as first argument
+     */
+    fns: {
+        [name: string]: SplExtensionFn;
+    };
+};
+/**
+ * Filesystem operations available in the worker (synchronous)
+ */
+export type SplFsSync = {
+    /**
+     * - Mount filesystem
+     */
+    mount: (path: string, mountpoint?: string, options?: MountOption[]) => SplSync;
+    /**
+     * - Unmount filesystem
+     */
+    unmount: (mountpoint: string) => SplSync;
+    /**
+     * - Read file from virtual filesystem
+     */
+    file: (path: string) => ArrayBuffer;
+    /**
+     * - List directory contents
+     */
+    dir: (path: string) => string[];
+    /**
+     * - Delete file from virtual filesystem
+     */
+    unlink: (path: string) => SplSync;
+    /**
+     * - Create directory in virtual filesystem
+     */
+    mkdir: (path: string) => SplSync;
+};
+/**
+ * SPL instance available in the worker (synchronous API)
+ * This is the type received by extension functions with `extends: 'spl'`
+ */
+export type SplSync = {
+    /**
+     * - Open a database
+     */
+    db: (path?: string | ArrayBuffer) => DbSync;
+    /**
+     * - Get version info
+     */
+    version: () => VersionInfo;
+    /**
+     * - Filesystem operations
+     */
+    fs: SplFsSync;
+};
+/**
+ * Database instance available in the worker (synchronous API)
+ * This is the type received by extension functions with `extends: 'db'`
+ */
+export type DbSync = {
+    /**
+     * - Attach another database
+     */
+    attach: (db: string, schema: string) => DbSync;
+    /**
+     * - Detach a database
+     */
+    detach: (schema: string) => DbSync;
+    /**
+     * - Execute SQL with optional parameters
+     */
+    exec: (sql: string, parameters?: any[] | {
+        [name: string]: any;
+    }) => DbSync;
+    /**
+     * - Execute a SQL script
+     */
+    read: (sql: string) => DbSync;
+    /**
+     * - Load database from path
+     */
+    load: (src: string) => DbSync;
+    /**
+     * - Save database to path or return ArrayBuffer
+     */
+    save: (dest?: string) => DbSync | ArrayBuffer;
+    /**
+     * - Close the database
+     */
+    close: () => SplSync;
+    /**
+     * - Get query results
+     */
+    get: ResultData;
 };
 /**
  * SQLite constants

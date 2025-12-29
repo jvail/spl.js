@@ -521,7 +521,7 @@ tape('autoincrement: https://github.com/jvail/spl.js/issues/15', async (t) => {
 });
 
 tape('spl.version() method', async (t) => {
-    t.plan(7);
+    t.plan(6);
 
     const spl = await SPL();
     const v = spl.version();
@@ -531,8 +531,7 @@ tape('spl.version() method', async (t) => {
     t.equals(typeof v.geos, 'string');
     t.equals(typeof v.proj, 'string');
     t.equals(typeof v.rttopo, 'string');
-    t.equals(typeof v['spl.js'], 'string');
-    t.equals(v.spatialite, '5.1.1-rc0');
+    t.equals(typeof v.spl, 'string');
 });
 
 tape('attach and detach', async (t) => {

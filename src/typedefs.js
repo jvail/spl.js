@@ -1,5 +1,9 @@
 /**
  * Shared type definitions for spl.js
+ *
+ * NOTE: Types imported from this file in spl-web.js and spl-node.mjs are only
+ * "import type" in the generated .d.ts files. The build:types script uses sed
+ * to convert these to "export type" so consumers can import them from 'spl.js'.
  */
 
 /**
@@ -39,7 +43,7 @@
  * @property {string} geos - GEOS version
  * @property {string} proj - PROJ version
  * @property {string} rttopo - librttopo version
- * @property {string} 'spl.js' - spl.js version
+ * @property {string} spl - spl.js version
  */
 
 /**
@@ -50,10 +54,66 @@
  */
 
 /**
- * Extension definition for extending SPL or DB API
- * @typedef {Object} Extension
- * @property {'db'|'spl'} extends - What API to extend
- * @property {{[name: string]: Function}} fns - Extension functions
+ * Extension function for DB extensions - receives DbSync as first argument
+ * @typedef {(db: DbSync, ...args: any[]) => any} DbExtensionFn
+ */
+
+/**
+ * Extension function for SPL extensions - receives SplSync as first argument
+ * @typedef {(spl: SplSync, ...args: any[]) => any} SplExtensionFn
+ */
+
+/**
+ * Extension definition for extending the DB API
+ * @typedef {Object} DbExtension
+ * @property {'db'} extends - Extends the database API
+ * @property {{[name: string]: DbExtensionFn}} fns - Extension functions that receive DbSync as first argument
+ */
+
+/**
+ * Extension definition for extending the SPL API
+ * @typedef {Object} SplExtension
+ * @property {'spl'} extends - Extends the SPL API
+ * @property {{[name: string]: SplExtensionFn}} fns - Extension functions that receive SplSync as first argument
+ */
+
+
+// =============================================================================
+// Worker-side types (synchronous API available inside extensions)
+// =============================================================================
+
+/**
+ * Filesystem operations available in the worker (synchronous)
+ * @typedef {Object} SplFsSync
+ * @property {(path: string, mountpoint?: string, options?: MountOption[]) => SplSync} mount - Mount filesystem
+ * @property {(mountpoint: string) => SplSync} unmount - Unmount filesystem
+ * @property {(path: string) => ArrayBuffer} file - Read file from virtual filesystem
+ * @property {(path: string) => string[]} dir - List directory contents
+ * @property {(path: string) => SplSync} unlink - Delete file from virtual filesystem
+ * @property {(path: string) => SplSync} mkdir - Create directory in virtual filesystem
+ */
+
+/**
+ * SPL instance available in the worker (synchronous API)
+ * This is the type received by extension functions with `extends: 'spl'`
+ * @typedef {Object} SplSync
+ * @property {(path?: string | ArrayBuffer) => DbSync} db - Open a database
+ * @property {() => VersionInfo} version - Get version info
+ * @property {SplFsSync} fs - Filesystem operations
+ */
+
+/**
+ * Database instance available in the worker (synchronous API)
+ * This is the type received by extension functions with `extends: 'db'`
+ * @typedef {Object} DbSync
+ * @property {(db: string, schema: string) => DbSync} attach - Attach another database
+ * @property {(schema: string) => DbSync} detach - Detach a database
+ * @property {(sql: string, parameters?: any[] | {[name: string]: any}) => DbSync} exec - Execute SQL with optional parameters
+ * @property {(sql: string) => DbSync} read - Execute a SQL script
+ * @property {(src: string) => DbSync} load - Load database from path
+ * @property {(dest?: string) => DbSync | ArrayBuffer} save - Save database to path or return ArrayBuffer
+ * @property {() => SplSync} close - Close the database
+ * @property {ResultData} get - Get query results
  */
 
 /**

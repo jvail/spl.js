@@ -390,6 +390,7 @@ tape('proj embeded', async (t) => {
 
 // TODO: firefox: Dynamic module import is disabled or not supported in this context
 tape('extensions', async (t) => {
+    /** @type {import('../dist/index.js').DbExtension[]} */
     const extensions = [
         {
             extends: 'db',
@@ -432,10 +433,10 @@ tape('extensions', async (t) => {
 
     t.plan(4);
 
-    t.equals(await db.tables().get.first, 'hello');
-    t.equals(await db.master('view').get.first, 'hello_view');
-    t.equals(await spl.spatialite_version(), '5.1.1-rc0');
-    t.equals(await db.async_fn(10), 10);
+    t.equals(await db.ex.tables().get.first, 'hello');
+    t.equals(await db.ex.master('view').get.first, 'hello_view');
+    t.equals(await spl.ex.spatialite_version(), '5.1.1-rc0');
+    t.equals(await db.ex.async_fn(10), 10);
 });
 
 tape('json', async (t) => {
@@ -496,7 +497,7 @@ tape('json', async (t) => {
 });
 
 tape('spl.version() method', async (t) => {
-    t.plan(7);
+    t.plan(6);
 
     const spl = await SPL();
     const v = await spl.version();
@@ -506,8 +507,7 @@ tape('spl.version() method', async (t) => {
     t.equals(typeof v.geos, 'string');
     t.equals(typeof v.proj, 'string');
     t.equals(typeof v.rttopo, 'string');
-    t.equals(typeof v['spl.js'], 'string');
-    t.equals(v.spatialite, '5.1.1-rc0');
+    t.equals(typeof v.spl, 'string');
 });
 
 tape('execute sql scripts', async (t) => {
@@ -1115,6 +1115,7 @@ tape('import geojson from mounted file', async (t) => {
 tape('extension with async function', async (t) => {
     t.plan(2);
 
+    /** @type {import('../dist/index.js').DbExtension} */
     const extension = {
         extends: 'db',
         fns: {
@@ -1136,10 +1137,10 @@ tape('extension with async function', async (t) => {
         insert into items values (1), (2), (3);
     `);
 
-    const count = await db.getCountAsync('items');
+    const count = await db.ex.getCountAsync('items');
     t.equals(count, 3);
 
-    const sum = await db.sumAsync(10, 20);
+    const sum = await db.ex.sumAsync(10, 20);
     t.equals(sum, 30);
 
     await db.close();

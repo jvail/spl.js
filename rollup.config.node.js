@@ -10,15 +10,13 @@ const cp = copy({
     targets: [
         { src: 'src/build/js/index.wasm', dest: 'dist' },
         { src: 'src/build/bc/share/proj', dest: 'dist' },
-        { src: 'src/index.mjs', dest: 'dist' },
-        { src: 'src/typedefs.js', dest: 'dist' },
     ]
 });
 
 export default args => ({
     input: 'src/spl-node.mjs',
     output: [
-        { file: 'dist/spl-node.mjs', format: 'es', exports: 'auto'}
+        { file: 'dist/index.mjs', format: 'es', exports: 'auto'}
     ],
     plugins: args.configDebug ? [
         replace({
