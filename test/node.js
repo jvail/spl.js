@@ -25,8 +25,10 @@ fs.readdir(path.join(__dirname, 'files/tmp'), (err, files) => {
 });
 
 tape('version tests', async (t) => {
-    t.plan(5);
+    t.plan(6);
     const spl = await SPL();
+
+    t.equal(spl.version().spl, '1.0.1');
 
     const db = spl.db();
 
@@ -920,6 +922,61 @@ tape('topology - create and use topology', async (t) => {
         'select count(*) from london_boroughs_100 where geom is not null',
     ).get.first;
     t.true(genCount > 0, 'Generalized table should have geometries');
+
+    db.close();
+});
+
+tape('GEOS version-guarded functions', async (t) => {
+    t.plan(6);
+
+    const db = (await SPL()).db();
+    const poly = "geomfromtext('POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))')";
+    const line = "geomfromtext('LINESTRING(0 0, 10 10)')";
+
+    // GEOS_ADVANCED (3.4+): DelaunayTriangulation returns triangles covering the input
+    t.true(
+        db.exec(`select NumGeometries(DelaunayTriangulation(${poly})) = 2`).get
+            .first,
+        'DelaunayTriangulation (GEOS_ADVANCED)',
+    );
+
+    // GEOS_370 (3.7+): FrechetDistance between parallel lines offset by 1
+    t.true(
+        db.exec(
+            `select FrechetDistance(${line}, geomfromtext('LINESTRING(0 1, 10 11)')) = 1.0`,
+        ).get.first,
+        'FrechetDistance (GEOS_370)',
+    );
+
+    // GEOS_390 (3.9+): bounding circle of a 10x10 square contains the square
+    t.true(
+        db.exec(`select Contains(GEOSMinimumBoundingCircle(${poly}), ${poly})`)
+            .get.first,
+        'GEOSMinimumBoundingCircle (GEOS_390)',
+    );
+
+    // GEOS_3100 (3.10+): inscribed circle center lies within the polygon
+    t.true(
+        db.exec(
+            `select Within(GEOSMaximumInscribedCircle(${poly}, 1.0), ${poly})`,
+        ).get.first,
+        'GEOSMaximumInscribedCircle (GEOS_3100)',
+    );
+
+    // GEOS_3100 (3.10+): constrained triangulation preserves polygon boundary
+    t.true(
+        db.exec(
+            `select Equals(ST_Union(ConstrainedDelaunayTriangulation(${poly})), ${poly})`,
+        ).get.first,
+        'ConstrainedDelaunayTriangulation (GEOS_3100)',
+    );
+
+    // GEOS_3110 (3.11+): concave hull of a convex polygon equals the polygon
+    t.true(
+        db.exec(`select Equals(GeosConcaveHull(${poly}, 1.0), ${poly})`).get
+            .first,
+        'GeosConcaveHull (GEOS_3110)',
+    );
 
     db.close();
 });
