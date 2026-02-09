@@ -1,6 +1,6 @@
 {
   "name": "spl.js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SpatiaLite and friends - sqlite, geos, proj, rttopo - for node and browser.",
   "type": "module",
   "exports": {

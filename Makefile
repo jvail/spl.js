@@ -204,6 +204,8 @@ spatialite-src:
 	[ -d $(SPATIALITE_SRC) ] || (mkdir -p $(SPATIALITE_SRC) && cd $(SPATIALITE_SRC) && fossil open $(DOWNLOAD_DIR)/libspatialite.fossil $(SPATIALITE_COMMIT));
 
 # remove some irrelevant tests that will fail (still some xls tests failing)
+# emconfigure may not auto-detect GEOS version guards during cross-compilation,
+# so we set them explicitly to ensure all GEOS functions are included. (#41)
 spatialite-conf: spatialite-src
 	sed -i '/check_extension/d' $(SPATIALITE_SRC)/test/Makefile.am;
 	sed -i '/check_sql_stmt_legacy/d' $(SPATIALITE_SRC)/test/Makefile.am;
@@ -214,7 +216,7 @@ spatialite-conf: spatialite-src
 	cd $(SPATIALITE_SRC); \
 	aclocal && automake; \
 	emconfigure ./configure $(PREFIX)  --host=none-none-none \
-	CFLAGS="$(EMX_FLAGS) -DENABLE_MINIZIP -UOMIT_PROJ -DPROJ_NEW -ULOADABLE_EXTENSION -I$(ZLIB_SRC)/contrib" \
+	CFLAGS="$(EMX_FLAGS) -DENABLE_MINIZIP -UOMIT_PROJ -DPROJ_NEW -ULOADABLE_EXTENSION -DGEOS_ADVANCED -DGEOS_370 -DGEOS_390 -DGEOS_3100 -DGEOS_3110 -I$(ZLIB_SRC)/contrib" \
 	CPPFLAGS="-I$(BC_DIR)/include" \
 	LDFLAGS="-L$(BC_DIR)/lib" \
 	PKG_CONFIG_LIBDIR="$(BC_DIR)/lib/pkgconfig" \
